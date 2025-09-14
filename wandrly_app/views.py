@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from django.http import HttpResponse
 
 
 
@@ -23,7 +22,7 @@ posts = [
 
 # Create your views here.
 def home(request):
-    return HttpResponse('<h1>This is my post</h1>')
+    return render(request, 'home.html')
 
 def post_index(request):
     return render(request, 'posts/index.html', {'posts': posts})

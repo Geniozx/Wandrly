@@ -1,0 +1,21 @@
+{% extends 'base.html' %} {% load static %} {% block head %}
+<link
+  rel="stylesheet"
+  href="{% static '' %}"
+/>
+{% endblock %} {% block content %}
+
+<section class="logo-container">
+  <div class="post-container">
+    <img
+      src="{% static '' %}"
+      alt="Wandrly"
+    />
+  </div>
+  <img
+    src="{% static '' %}"
+    alt="Text reads: Wandrly"
+  />
+</section>
+
+{% endblock %}

@@ -1,9 +1,12 @@
-{% extends 'base.html' %} {% block head %}
-
+{% extends 'base.html' %} {% load static %} {% block head %}
+<link
+  rel="stylesheet"
+  href="{% static '' %}"
+/>
 {% endblock %} {% block content %}
 
 <section class="page-header">
-  <h1>Cat List</h1>
+  <h1>My Posts</h1>
   <img
     src="{% static '' %}"
     alt="Wandrly"
@@ -21,10 +24,13 @@
         />
       </div>
       <h2 class="card-title">{{ post.location }}</h2>
-      <p>{{ post.media }}{{ post.caption }} {{ post.createdAt}}</p>
-      <p>{{ post.likes }} {{ post.comments}}</p>
-      {% else %}
-      <p>{{ post.media }}{{ post.caption }} {{ post.createdAt}}</p>
+      <p>{{ post.media }} {{ post.caption }} {{ post.createdAt }}</p>
+      {% if post.likes > 0 and post.comments > 0 %}
+      <p>{{ post.likes }} {{ post.comments }}</p>
+      {% elif post.likes > 0 %}
+      <p>{{ post.likes }}</p>
+      {% elif post.comments > 0 %}
+      <p>{{ post.comments }}</p>
       {% endif %}
     </div>
   </div>
