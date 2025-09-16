@@ -11,24 +11,25 @@
   <div class="post-details">
     <h1>{{ post.location }}</h1>
       <h2>{{ post.media }} {{ post.caption }} {{ post.created_at }}</h2>
-
-    {% if post.likes > 0 and post.comment > 0 %}
+      {% for comment in post.comment_set.all %}
+      {% if post.likes > 0 and post.comment > 0 %}
       <h2>{{ post.likes }} {{ post.comment }}</h2>
-    {% elif post.likes > 0 %}
-    <h2>{{ post.likes }}</h2>>
-    {% elif post.comment > 0 %}
-    <h2>{{ post.comment }}</h2>
-    {% endif %}
-    <div class="post-actions">
-      <a href="{% url 'post-update' post.id %}" class="btn warn">Edit</a>
-      <a href="{% url 'post-delete' post.id %}" class="btn danger">Delete</a>
+      {% elif post.likes > 0 %}
+      <h2>{{ post.likes }}</h2>>
+      {% elif post.comment > 0 %}
+      <h2>{{ post.comment }}</h2>
+      {% endif %}
+      {% endfor %}
+      <div class="post-actions">
+        <a href="{% url 'post-update' post.id %}" class="btn warn">Edit</a>
+        <a href="{% url 'post-delete' post.id %}" class="btn danger">Delete</a>
+      </div>
     </div>
-  </div>
-  <h3>Comment</h3>
-  <form method="post" class="subsection-content" autocomplete="off">
-    {% csrf_token %} 
-    {{ comment_form.as_p }}
-    <button type="submit" class="btn submit">Add Comment</button>
-  </form>
-</section>
-{% endblock %}
+    <h3>Comment</h3>
+    <form action="{% url 'add-comment' post.id %}" method="post" class="subsection-content" autocomplete="off">
+      {% csrf_token %} 
+      {{ comment_form.as_p }}
+      <button type="submit" class="btn submit">Add Comment</button>
+    </form>
+  </section>
+  {% endblock %}

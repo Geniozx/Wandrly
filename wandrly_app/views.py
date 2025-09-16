@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .models import Post
 from .forms import CommentForm
@@ -15,6 +15,14 @@ def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     comment_form = CommentForm
     return render(request, 'posts/detail.html', {'post': post, 'comment_form': comment_form})
+
+def add_comment(request, post_id):
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        new_comment = form.save(commit=False)
+        new_comment.post_id = post_id
+        new_comment.save()
+    return redirect('post-detail', post_id=post_id)
 
 class PostCreate(CreateView):
     model = Post
