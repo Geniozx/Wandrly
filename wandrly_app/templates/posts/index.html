@@ -25,13 +25,15 @@
       {% endif %}
       <h2 class="card-title">{{ post.location }}</h2>
       <p>{{ post.media }} {{ post.caption }} {{ post.created_at }}</p>
-      {% if post.likes > 0 and post.comments > 0 %}
-      <p>{{ post.likes }} {{ post.comments }}</p>
+      {% for comment in post.comment_set.all %}
+      {% if post.likes > 0 and post.comment > 0 %}
+      <p>{{ post.likes }} {{ post.comment }}</p>
       {% elif post.likes > 0 %}
       <p>{{ post.likes }}</p>
-      {% elif post.comments > 0 %}
-      <p>{{ post.comments }}</p>
+      {% elif post.comment > 0 %}
+      <p>{{ post.comment }}</p>
       {% endif %}
+      {% endfor %}
     </div>
     </a>
   </div>
