@@ -7,7 +7,7 @@ def home(request):
     return render(request, 'home.html')
 
 def post_index(request):
-    posts = []   #Post.objects.all().order_by('created_at')
+    posts = Post.objects.all().order_by('-created_at')
     comment_form = CommentForm
     return render(request, 'posts/index.html', {'posts': posts, 'comment_form': comment_form})
 

@@ -24,20 +24,27 @@
       </div>
       {% endif %}
       <h2 class="card-title">{{ post.location }}</h2>
-      <p>{{ post.media }} {{ post.caption }} {{ post.created_at }}</p>
-      {% for comment in post.comment_set.all %}
-      {% if post.likes > 0 and post.comment > 0 %}
-      <p>{{ post.likes }} {{ post.comment }}</p>
-      {% elif post.likes > 0 %}
-      <p>{{ post.likes }}</p>
-      {% elif post.comment > 0 %}
-      <p>{{ post.comment }}</p>
+      <p>{{ post.caption }}</p>
+      <small>Posted by {{ post.user.username }} {{ post.created_at|date:""}}</small>
+      
+      {% if post.likes > 0 %}
+      <p>{{ post.likes.count }} Likes</p>
       {% endif %}
-      {% endfor %}
+
+      {% if post.comments.all %}
+      <h3>Comments</h3>
+      <ul>
+        {% for comment in post.comments.all %}
+        <li><strong>{{ comment.user.username }}:</strong> {{ comment.text }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
     </div>
-    </a>
-  </div>
-  {% endfor %}
+  </a>
+</div>
+{% empty %}
+<p>No posts yet.</p>
+{% endfor %}
 </section>
 
 {% endblock %}
