@@ -3,23 +3,38 @@
 {% block head %}
 <link rel="stylesheet" href="{% static '' %}" />
 {% endblock %} 
+
 {% block content %}
 <section class="post-container">
   <div class="wandrly-img">
-    <img src="{% static '' %}" alt="Wandrly" />
+    {% if post.media %}
+      <img src="{{ post.media.url }}" alt="Post image" />
+    {% endif %}
   </div>
+
   <div class="post-details">
     <h1>{{ post.location }}</h1>
-      <h2>{{ post.media }} {{ post.caption }} {{ post.created_at }}</h2>
-      {% for comment in post.comment_set.all %}
-      {% if post.likes > 0 and post.comment > 0 %}
-      <h2>{{ post.likes }} {{ post.comment }}</h2>
-      {% elif post.likes > 0 %}
-      <h2>{{ post.likes }}</h2>>
-      {% elif post.comment > 0 %}
-      <h2>{{ post.comment }}</h2>
-      {% endif %}
-      {% endfor %}
+    <h2>{{ post.caption }}</h2>
+    <p>Posted by {{ post.user.username }} on {{ post.created_at }}</p>
+
+
+    {% if post.likes.count > 0 %}
+      <p>{{ post.likes.count }} like{{ post.likes.count|pluralize }}</p>
+    {% endif %}
+
+
+    <h3>Comments</h3>
+    {% if post.comments.exists %}
+      <ul>
+        {% for comment in post.comments.all %}
+          <li><strong>{{ comment.user.username }}</strong>: {{ comment.text }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No comments yet</p>
+      <small>Start conversation</small>
+    {% endif %}
+
       <div class="post-actions">
         <a href="{% url 'post-update' post.id %}" class="btn warn">Edit</a>
         <a href="{% url 'post-delete' post.id %}" class="btn danger">Delete</a>
