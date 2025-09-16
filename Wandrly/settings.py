@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.gis',
     'wandrly_app',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -75,11 +76,14 @@ WSGI_APPLICATION = 'Wandrly.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Wandrly',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'wandrly',
+        'USER': 'wandrly_user',
+        'PASSWORD': '12Qwaszx@!',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
-
 
 
 # Password validation
@@ -122,3 +126,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

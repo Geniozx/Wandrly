@@ -10,7 +10,7 @@
   </div>
   <div class="post-details">
     <h1>{{ post.location }}</h1>
-      <h2>{{ post.media }} {{ post.caption }} {{ post.createdAt }}</h2>
+      <h2>{{ post.media }} {{ post.caption }} {{ post.created_at }}</h2>
     {% if post.likes > 0 and post.comments > 0 %}
       <h2>{{ post.likes }} {{ post.comments }}</h2>
     {% elif post.likes > 0 %}

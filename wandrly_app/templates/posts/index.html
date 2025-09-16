@@ -16,16 +16,15 @@
 <section class="card-container">
   {% for post in posts %}
   <div class="card">
-    <a href="/posts/{{ post.id }}"></a>
+    <a href="{% url 'post-detail' post.id %}">
     <div class="card-content">
+      {% if post.media %}
       <div class="card-img-container">
-        <img
-          src="{% static '' %}"
-          alt="Will i use this section?"
-        />
+        <img src="{{ post.media.url }}" alt="Post image" />
       </div>
+      {% endif %}
       <h2 class="card-title">{{ post.location }}</h2>
-      <p>{{ post.media }} {{ post.caption }} {{ post.createdAt }}</p>
+      <p>{{ post.media }} {{ post.caption }} {{ post.created_at }}</p>
       {% if post.likes > 0 and post.comments > 0 %}
       <p>{{ post.likes }} {{ post.comments }}</p>
       {% elif post.likes > 0 %}
@@ -40,3 +39,4 @@
 </section>
 
 {% endblock %}
+
