@@ -1,5 +1,5 @@
 from django.db import models
-# from django.urls import reverse
+from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models as gis_models
 
@@ -37,6 +37,9 @@ class Post(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: {self.caption[:2200]}"
+    
+    def get_absolute_url(self):
+        return reverse('post-detail', kwargs={'post_id': self.id})
     
     
 class Comment(models.Model):

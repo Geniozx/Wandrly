@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .models import Post
 
 def home(request):
@@ -16,3 +16,11 @@ def post_detail(request, post_id):
 class PostCreate(CreateView):
     model = Post
     fields = '__all__'
+
+class PostUpdate(UpdateView):
+    model = Post
+    fields = '__all__'
+
+class PostDelete(DeleteView):
+    model = Post
+    success_url = '/posts/'
