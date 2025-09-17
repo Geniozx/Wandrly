@@ -48,7 +48,7 @@
       <button type="submit" class="btn submit">Add Comment</button>
     </form>
   </section>
-  <div id="map" style="height: 500px; width: 100%;"></div>
+  <!-- <div id="map" style="height: 500px; width: 100%;"></div>
   <script>
   var map = L.map('map').setView([20, 0], 2);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -58,5 +58,5 @@
     marker.bindPopup("<b>{{ post.location.city }}, {{ post.location.country }}</b><br>{{ post.caption }}").openPopup();
     map.setView([{{ coords.lat }}, {{ coords.lng }}], 6);
     {% endif %}
-    </script>
+    </script> -->
   {% endblock %}
