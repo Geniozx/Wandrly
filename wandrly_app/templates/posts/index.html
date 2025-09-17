@@ -13,6 +13,21 @@
   />
 </section>
 
+<div id="map" style="height: 500px; width: 100%;"></div>
+
+<script>
+  var map = L.map('map').setView([20, 0], 2);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  {% for c in coords %}
+    var marker = L.marker([{{ c.lat }}, {{ c.lng }}]).addTo(map);
+    marker.bindPopup("<a href='{% url 'post-detail' c.id %}'><b>{{ c.city }}, {{ c.country }}</b></a><br>{{ c.caption }}");
+  {% endfor %}
+</script>
+
 <section class="card-container">
   {% for post in posts %}
   <div class="card">

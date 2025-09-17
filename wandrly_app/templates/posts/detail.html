@@ -40,6 +40,7 @@
         <a href="{% url 'post-delete' post.id %}" class="btn danger">Delete</a>
       </div>
     </div>
+    <div id="map" style="height: 400px; width: 100%; margin-top: 20px;"></div>
     <h3>Comment</h3>
     <form action="{% url 'add-comment' post.id %}" method="post" class="subsection-content" autocomplete="off">
       {% csrf_token %} 
@@ -47,4 +48,15 @@
       <button type="submit" class="btn submit">Add Comment</button>
     </form>
   </section>
+  <div id="map" style="height: 500px; width: 100%;"></div>
+  <script>
+  var map = L.map('map').setView([20, 0], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
+    {% if coords %}
+    var marker = L.marker([{{ coords.lat }}, {{ coords.lng }}]).addTo(map);
+    marker.bindPopup("<b>{{ post.location.city }}, {{ post.location.country }}</b><br>{{ post.caption }}").openPopup();
+    map.setView([{{ coords.lat }}, {{ coords.lng }}], 6);
+    {% endif %}
+    </script>
   {% endblock %}
