@@ -5,6 +5,9 @@ from .forms import CommentForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import SignupForm
+from django.contrib.auth.decorators import login_required
+from .models import Profile
+from .forms import UserForm, ProfileForm
 
 def home(request):
     return render(request, 'home.html')
@@ -70,8 +73,14 @@ def signup_view(request):
         form = SignupForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)  # log in right after signup
-            return redirect("post-index")  # send them to posts
+            Profile.objects.create(
+                user=user,
+                first_name=form.cleaned_data.get("first_name"),
+                last_name=form.cleaned_data.get("last_name"),
+                bio=form.cleaned_data.get("bio")
+            )
+            login(request, user)
+            return redirect("home")
     else:
         form = SignupForm()
     return render(request, "registration/signup.html", {"form": form})
@@ -91,6 +100,26 @@ def logout_view(request):
     logout(request)
     return redirect("login")
 
+
+@login_required
+def profile_edit(request):
+    if request.method == "POST":
+        user_form = UserForm(request.POST, instance=request.user)
+        profile_form = ProfileForm(
+            request.POST, request.FILES, instance=request.user.profile
+        )
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            return redirect("profile")
+    else:
+        user_form = UserForm(instance=request.user)
+        profile_form = ProfileForm(instance=request.user.profile)
+
+    return render(request, "profile_edit.html", {
+        "user_form": user_form,
+        "profile_form": profile_form
+    })
 
 
 

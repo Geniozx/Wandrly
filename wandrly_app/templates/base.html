@@ -5,19 +5,21 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="shortcut icon" type="image/png" href="" />
+    
+    <!-- Leaflet CSS/JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
     <title>Wandrly</title>
-    {% block head %} 
-    {% endblock %}
+    {% block head %}{% endblock %}
   </head>
   <body>
     <header>
       <div class="header-logo-container">
-        <a href="/">
+        <a href="{% url 'home' %}">
           <img src="" alt="The Wandrly Logo" />
         </a>
       </div>
@@ -25,12 +27,26 @@
         <ul>
           <li><a href="{% url 'post-index' %}">My Posts</a></li>
           <li><a href="{% url 'post-create' %}">Make a Post</a></li>
+
+          {% if user.is_authenticated %}
+            <li><a href="{% url 'profile-edit' %}">Edit Profile</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+            <li>
+              <!-- {% if user.profile.profile_image %}
+                <img src="{{ user.profile.profile_image.url }}" alt="Profile" style="width:30px; height:30px; border-radius:50%;" />
+              {% endif %} -->
+              <span>{{ user.username }}</span>
+            </li>
+          {% else %}
+            <li><a href="{% url 'login' %}">Login</a></li>
+            <li><a href="{% url 'signup' %}">Sign Up</a></li>
+          {% endif %}
         </ul>
       </nav>
     </header>
+
     <main>
-     {% block content %} 
-     {% endblock %}
-     </main>
+      {% block content %}{% endblock %}
+    </main>
   </body>
 </html>
