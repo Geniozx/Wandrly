@@ -90,14 +90,14 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect("post-index")
+            return redirect("home")
     else:
         form = AuthenticationForm()
     return render(request, "registration/login.html", {"form": form})
 
 def logout_view(request):
     logout(request)
-    return redirect("login")
+    return redirect("home")
 
 
 @login_required
