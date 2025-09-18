@@ -1,24 +1,85 @@
-{% extends 'base.html' %} 
-{% load static %} 
+{% extends 'base.html' %}
+{% load static %}
+
 {% block head %}
 <link rel="stylesheet" href="{% static '' %}" />
-{% endblock %} 
-{% block content %}
+{% endblock %}
 
+{% block content %}
 <div class="page-header">
   {% if post %}
-    <h1>Edit {{ post.id }}</h1>
+    <h1>Edit Post {{ post.id }}</h1>
   {% else %}
     <h1>Make a Post</h1>
   {% endif %}
 </div>
 
-<form action="" method="post" class="form-container">
+<form action="" method="post" enctype="multipart/form-data" class="form-container">
   {% csrf_token %}
+
   <table>
-    {{ form.as_table }}
+    <tr>
+      <th>{{ form.caption.label }}</th>
+      <td>{{ form.caption }}</td>
+    </tr>
+    <tr>
+      <th>{{ form.media.label }}</th>
+      <td>{{ form.media }}</td>
+    </tr>
+    <tr>
+      <th>{{ form.city.label }}</th>
+      <td>{{ form.city }}</td>
+    </tr>
+    <tr>
+      <th>{{ form.country.label }}</th>
+      <td>{{ form.country }}</td>
+    </tr>
   </table>
+
+  {{ form.latitude }}
+  {{ form.longitude }}
+
+  <input type="hidden" id="id_latitude" name="latitude">
+  <input type="hidden" id="id_longitude" name="longitude">
+
+  <div id="map" style="height: 400px; margin: 1em 0;"></div>
+
   <button type="submit" class="btn submit">Submit!</button>
 </form>
 
+<script>
+  var hasCoords = {{ post.location.coordinates|yesno:"true,false" }};
+  var defaultLat = hasCoords ? {{ post.location.coordinates.y }} : 20;
+  var defaultLng = hasCoords ? {{ post.location.coordinates.x }} : 0;
+
+  var map = L.map('map').setView([defaultLat, defaultLng], hasCoords ? 6 : 2);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+  }).addTo(map);
+
+  var marker;
+
+  if (hasCoords) {
+    marker = L.marker([defaultLat, defaultLng]).addTo(map);
+    document.getElementById("id_latitude").value = defaultLat;
+    document.getElementById("id_longitude").value = defaultLng;
+  }
+
+  map.on('click', function(e) {
+    var lat = e.latlng.lat;
+    var lng = e.latlng.lng;
+
+
+    document.getElementById("id_latitude").value = lat;
+    document.getElementById("id_longitude").value = lng;
+
+
+    if (marker) {
+      marker.setLatLng(e.latlng);
+    } else {
+      marker = L.marker(e.latlng).addTo(map);
+    }
+  });
+</script>
 {% endblock %}

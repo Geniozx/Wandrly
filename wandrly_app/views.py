@@ -5,8 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from .models import Post, Profile
-from .forms import CommentForm
-from .forms import CommentForm, UserCreationForm, UserForm, ProfileForm
+from .forms import CommentForm, UserCreationForm, UserForm, ProfileForm, PostForm
 
 
 def home(request):
@@ -77,13 +76,12 @@ def add_comment(request, post_id):
     return redirect('post-detail', post_id=post_id)
 
 class PostCreate(LoginRequiredMixin, CreateView):
-    login_url = 'login'
-    model = Post
-    fields = ['media', 'caption', 'location']
+    form_class = PostForm
+    template_name = 'wandrly_app/post_form.html'
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
-        return super().form_valid(form)
+        form.save(user=self.request.user)
+        return redirect('post-index')
 
 
 class PostUpdate(LoginRequiredMixin, UpdateView):
@@ -91,8 +89,6 @@ class PostUpdate(LoginRequiredMixin, UpdateView):
     model = Post
     fields = ['media', 'caption', 'location']
 
-    def get_queryset(self):
-        return Post.objects.filter(user=self.request.user)
 
 class PostDelete(LoginRequiredMixin, DeleteView):
     login_url = 'login'
