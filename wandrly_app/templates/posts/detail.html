@@ -5,49 +5,45 @@
 {% endblock %} 
 
 {% block content %}
+
 <section class="post-container">
-  <div class="wandrly-img">
-    {% if post.media %}
-      <img src="{{ post.media.url }}" alt="Post image" />
-    {% endif %}
-  </div>
-
   <div class="post-details">
-    <h1>{{ post.location }}</h1>
-    <h2>{{ post.caption }}</h2>
-    <p>Posted by {{ post.user.username }} on {{ post.created_at }}</p>
-
-
-    {% if post.likes.count > 0 %}
-      <p>{{ post.likes.count }} like{{ post.likes.count|pluralize }}</p>
-    {% endif %}
-
-
-    <h3>Comments</h3>
-    {% if post.comments.exists %}
-      <ul>
-        {% for comment in post.comments.all %}
-          <li><strong>{{ comment.user.username }}</strong>: {{ comment.text }}</li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>No comments yet</p>
-      <small>Start conversation</small>
-    {% endif %}
-
-      <div class="post-actions">
-        <a href="{% url 'post-update' post.id %}" class="btn warn">Edit</a>
-        <a href="{% url 'post-delete' post.id %}" class="btn danger">Delete</a>
-      </div>
+    {% if post.media %}
+    <div class="wandrly-img">
+      <img src="{{ post.media.url }}" alt="Post image" />
     </div>
-    <div id="map" style="height: 400px; width: 100%; margin-top: 20px;"></div>
-    <h3>Comment</h3>
+    {% endif %}
+
+    <h1>{{ post.location }}</h1>
+    <p>{{ post.caption }}</p>
+    <p><small>{{ post.created_at }}</small></p>
+
+    <!-- Likes -->
+    <p>Likes: {{ post.likes.count }}</p>
+
+    <!-- Comments -->
+    <h3>Comments</h3>
+    {% for comment in post.comments.all %}
+      <p><b>{{ comment.user.username }}</b>: {{ comment.text }}</p>
+    {% empty %}
+      <p>No comments yet.</p>
+    {% endfor %}
+
+    <!-- Add a new comment -->
     <form action="{% url 'add-comment' post.id %}" method="post" class="subsection-content" autocomplete="off">
-      {% csrf_token %} 
+      {% csrf_token %}
       {{ comment_form.as_p }}
       <button type="submit" class="btn submit">Add Comment</button>
     </form>
-  </section>
+
+    <!-- Actions -->
+    <div class="post-actions">
+      <a href="{% url 'post-update' post.id %}" class="btn warn">Edit</a>
+      <a href="{% url 'post-delete' post.id %}" class="btn danger">Delete</a>
+    </div>
+  </div>
+</section>
+
   <!-- <div id="map" style="height: 500px; width: 100%;"></div>
   <script>
   var map = L.map('map').setView([20, 0], 2);

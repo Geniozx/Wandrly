@@ -1,8 +1,7 @@
 from django import forms
-from .models import Comment, Profile
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-
+from .models import Profile, Comment
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -18,6 +17,14 @@ class SignUpForm(UserCreationForm):
     class Meta:
         model = User
         fields = ("username", "first_name", "last_name", "password1", "password2")
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.first_name = self.cleaned_data.get("first_name") or ""
+        user.last_name = self.cleaned_data.get("last_name") or ""
+        if commit:
+            user.save()
+        return user
 
 
 class UserForm(forms.ModelForm):

@@ -1,77 +1,54 @@
-{% extends 'base.html' %} {% load static %} {% block head %}
-<link
-  rel="stylesheet"
-  href="{% static '' %}"
-/>
-{% endblock %} {% block content %}
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static '' %}" />
+{% endblock %}
+{% block content %}
 
 <section class="page-header">
   <h1>My Posts</h1>
-  <img
-    src="{% static '' %}"
-    alt="Wandrly"
-  />
 </section>
 
-<div id="map" style="height: 500px; width: 100%; margin-bottom: 2rem;"></div>
-
-<script>
-  var map = L.map('map').setView([20, 0], 2);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-
-  var markers = L.markerClusterGroup();
-
-  {% for c in coords %}
-    var marker = L.marker([{{ c.lat }}, {{ c.lng }}]).addTo(map);
-
-
-    marker.bindPopup(`
-      <a href="{% url 'post-detail' c.id %}">
-        <b>{{ c.city }}, {{ c.country }}</b>
-      </a><br>
-      {{ c.caption }}
-    `);
-    markers.addLayer(marker);
-  {% endfor %}
-  map.addLayer(markers);
-</script>
-
-<section class="card-container">
+<!-- <section class="card-container">
   {% for post in posts %}
   <div class="card">
     <a href="{% url 'post-detail' post.id %}">
-    <div class="card-content">
-      {% if post.media %}
-      <div class="card-img-container">
-        <img src="{{ post.media.url }}" alt="Post image" />
-      </div>
-      {% endif %}
-      <h2 class="card-title">{{ post.location }}</h2>
-      <p>{{ post.caption }}</p>
-      <small>Posted by {{ post.user.username }} {{ post.created_at|date:""}}</small>
-      
-      {% if post.likes > 0 %}
-      <p>{{ post.likes.count }} Likes</p>
-      {% endif %}
+      <div class="card-content">
+        {% if post.media %}
+        <div class="card-img-container">
+          <img src="{{ post.media.url }}" alt="Post image" />
+        </div>
+        {% endif %}
+        <h2 class="card-title">{{ post.location }}</h2>
+        <p>{{ post.caption }}</p>
+        <p><small>{{ post.created_at }}</small></p>
 
-      {% if post.comments.all %}
-      <h3>Comments</h3>
-      <ul>
-        {% for comment in post.comments.all %}
-        <li><strong>{{ comment.user.username }}:</strong> {{ comment.text }}</li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-    </div>
-  </a>
-</div>
-{% empty %}
-<p>No posts yet.</p>
-{% endfor %}
-</section>
+        
+        <p>Likes: {{ post.likes.count }}</p>
+
+        
+        <p>Comments: {{ post.comments.count }}</p>
+      </div>
+    </a>
+  </div>
+  {% empty %}
+  <p>No posts yet.</p>
+  {% endfor %}
+</section> -->
+
+<!-- Leaflet map -->
+<div id="map" style="height: 500px;"></div>
+<script>
+  var map = L.map("map").setView([20, 0], 2);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
+  }).addTo(map);
+
+  {% for c in coords %}
+    var marker = L.marker([{{ c.lat }}, {{ c.lng }}]).addTo(map);
+    marker.bindPopup("<b>{{ c.city }}, {{ c.country }}</b><br>{{ c.caption }}<br><a href='{% url 'post-detail' c.id %}'>View Post</a>");
+  {% endfor %}
+</script>
 
 {% endblock %}
-

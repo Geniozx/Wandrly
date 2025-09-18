@@ -4,7 +4,7 @@ from .models import Post
 from .forms import CommentForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
-from .forms import SignupForm
+from .forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from .models import Profile
 from .forms import UserForm, ProfileForm
@@ -70,20 +70,19 @@ class PostDelete(DeleteView):
 
 def signup_view(request):
     if request.method == "POST":
-        form = SignupForm(request.POST)
+        form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             Profile.objects.create(
                 user=user,
-                first_name=form.cleaned_data.get("first_name"),
-                last_name=form.cleaned_data.get("last_name"),
-                bio=form.cleaned_data.get("bio")
+                bio=form.cleaned_data.get("bio", "")
             )
             login(request, user)
             return redirect("home")
     else:
-        form = SignupForm()
-    return render(request, "registration/signup.html", {"form": form})
+        form = UserCreationForm()
+    return render(request, "registration/login.html", {"form": form})
+
 
 def login_view(request):
     if request.method == "POST":
