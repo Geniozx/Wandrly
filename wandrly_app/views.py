@@ -10,8 +10,26 @@ from .models import Profile
 from .forms import UserForm, ProfileForm
 
 def home(request):
-    return render(request, 'home.html')
+    posts = Post.objects.all().order_by("-created_at")
 
+    coords = []
+    for p in posts:
+        if p.location and p.location.coordinates:
+            coords.append({
+                "lat": p.location.coordinates.y,
+                "lng": p.location.coordinates.x,
+                "caption": p.caption,
+                "city": p.location.city,
+                "country": p.location.country,
+                "id": p.id,
+            })
+
+    return render(request, "home.html", {
+        "coords": coords,
+        "user_authenticated": request.user.is_authenticated
+    })
+
+@login_required(login_url="login")
 def post_index(request):
     posts = Post.objects.all().order_by('-created_at')
     comment_form = CommentForm
@@ -32,6 +50,7 @@ def post_index(request):
         'coords': coords
     })
 
+@login_required(login_url="login")
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     comment_form = CommentForm
@@ -47,6 +66,7 @@ def post_detail(request, post_id):
         'coords': coords
     })
 
+@login_required(login_url="login")
 def add_comment(request, post_id):
     form = CommentForm(request.POST)
     if form.is_valid():

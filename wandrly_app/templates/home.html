@@ -12,10 +12,45 @@
       alt="Wandrly"
     />
   </div>
-  <img
+  <!-- <img
     src="{% static '' %}"
     alt="Text reads: Wandrly"
-  />
+  /> -->
 </section>
+
+<div id="map" style="height: 600px; width: 100%;"></div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const map = L.map("map").setView([20, 0], 2);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+    }).addTo(map);
+
+    const coords = {{ coords|safe }};
+    const userAuthenticated = {{ user_authenticated|yesno:"true,false" }};
+
+    coords.forEach(point => {
+      const marker = L.marker([point.lat, point.lng]).addTo(map);
+
+      let popupContent = `<b>${point.city}, ${point.country}</b><br>${point.caption}`;
+
+      if (userAuthenticated) {
+        popupContent += `<br><a href="/posts/${point.id}/">View Post</a>`;
+        if (point.full_content) {
+          popupContent += `<p>${point.full_content}</p>`;
+        }
+        if (point.image_url) {
+          popupContent += `<img src="${point.image_url}" alt="post image" style="max-width:200px;">`;
+        }
+      } else {
+        popupContent += `<br><em><a href="{% url 'login' %}">Login</a> or <a href="{% url 'signup' %}">Sign up</a> to view full posts.</em>`;
+      }
+
+      marker.bindPopup(popupContent);
+    });
+  });
+</script>
 
 {% endblock %}
