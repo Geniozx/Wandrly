@@ -1,13 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from .models import Post
-from .forms import CommentForm
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.forms import AuthenticationForm
-from .forms import UserCreationForm
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .models import Profile
-from .forms import UserForm, ProfileForm
+from django.contrib.auth import login, logout
+from django.contrib.auth.forms import AuthenticationForm
+from .models import Post, Profile
+from .forms import CommentForm
+from .forms import CommentForm, UserCreationForm, UserForm, ProfileForm
+
 
 def home(request):
     posts = Post.objects.all().order_by("-created_at")
@@ -72,20 +72,35 @@ def add_comment(request, post_id):
     if form.is_valid():
         new_comment = form.save(commit=False)
         new_comment.post_id = post_id
+        new_comment.user = request.user
         new_comment.save()
     return redirect('post-detail', post_id=post_id)
 
-class PostCreate(CreateView):
+class PostCreate(LoginRequiredMixin, CreateView):
+    login_url = 'login'
     model = Post
-    fields = '__all__'
+    fields = ['media', 'caption', 'location']
 
-class PostUpdate(UpdateView):
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+
+class PostUpdate(LoginRequiredMixin, UpdateView):
+    login_url = 'login'
     model = Post
-    fields = '__all__'
+    fields = ['media', 'caption', 'location']
 
-class PostDelete(DeleteView):
+    def get_queryset(self):
+        return Post.objects.filter(user=self.request.user)
+
+class PostDelete(LoginRequiredMixin, DeleteView):
+    login_url = 'login'
     model = Post
     success_url = '/posts/'
+
+    def get_queryset(self):
+        return Post.objects.filter(user=self.request.user)
 
 
 def signup_view(request):
@@ -101,7 +116,7 @@ def signup_view(request):
             return redirect("home")
     else:
         form = UserCreationForm()
-    return render(request, "registration/login.html", {"form": form})
+    return render(request, "registration/signup.html", {"form": form})
 
 
 def login_view(request):
