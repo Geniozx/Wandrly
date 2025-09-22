@@ -1,46 +1,46 @@
 {% extends 'base.html' %} 
 {% load static %} 
 {% block head %}
-<link rel="stylesheet" href="{% static '' %}" />
+<link rel="stylesheet" href="{% static 'css/post.css' %}" />
 {% endblock %} 
 
 {% block content %}
 
 <section class="post-container">
-  <div class="post-details">
+  <div class="post-card" style="width: 500px;">  <!-- Bigger card for detail page -->
+    
     {% if post.media %}
     <div class="wandrly-img">
       <img src="{{ post.media.url }}" alt="Post image" />
     </div>
     {% endif %}
 
-    <h1>{{ post.location }}</h1>
-    <p>{{ post.caption }}</p>
-    <p><small>{{ post.created_at }}</small></p>
+    <div class="post-card-content">
+      <h2 class="meta">{{ post.location }}</h2>
+      <p>{{ post.caption }}</p>
+      <p class="meta"><small>{{ post.created_at }}</small></p>
 
+      <p class="meta">Likes: {{ post.likes.count }}</p>
 
-    <p>Likes: {{ post.likes.count }}</p>
+      <h3>Comments</h3>
+      {% for comment in post.comments.all %}
+        <p><b>{{ comment.user.username }}</b>: {{ comment.text }}</p>
+      {% empty %}
+        <p>No comments yet.</p>
+      {% endfor %}
 
+      <form action="{% url 'add-comment' post.id %}" method="post" class="subsection-content" autocomplete="off">
+        {% csrf_token %}
+        {{ comment_form.as_p }}
+        <button type="submit" class="btn submit">Add Comment</button>
+      </form>
 
-    <h3>Comments</h3>
-    {% for comment in post.comments.all %}
-      <p><b>{{ comment.user.username }}</b>: {{ comment.text }}</p>
-    {% empty %}
-      <p>No comments yet.</p>
-    {% endfor %}
-
-
-    <form action="{% url 'add-comment' post.id %}" method="post" class="subsection-content" autocomplete="off">
-      {% csrf_token %}
-      {{ comment_form.as_p }}
-      <button type="submit" class="btn submit">Add Comment</button>
-    </form>
-
-
-    <div class="post-actions">
-      <a href="{% url 'post-update' post.id %}" class="btn warn">Edit</a>
-      <a href="{% url 'post-delete' post.id %}" class="btn danger">Delete</a>
+      <div class="post-actions" style="margin-top: 15px;">
+        <a href="{% url 'post-update' post.id %}" class="btn warn">Edit</a>
+        <a href="{% url 'post-delete' post.id %}" class="btn danger">Delete</a>
+      </div>
     </div>
   </div>
 </section>
-  {% endblock %}
+
+{% endblock %}

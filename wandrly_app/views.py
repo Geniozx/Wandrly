@@ -82,15 +82,16 @@ class PostCreate(LoginRequiredMixin, CreateView):
     template_name = 'wandrly_app/post_form.html'
 
     def form_valid(self, form):
+        # Pass the user to form.save
         post = form.save(user=self.request.user)
-        return redirect('post-detail', post_id=post.id)
+        return redirect('post-index')
 
 
 class PostUpdate(LoginRequiredMixin, UpdateView):
     login_url = 'login'
     model = Post
     form_class = PostForm
-    template_name = 'wandrly_app/post_form.html'
+    template_name = 'posts/post_form.html'
 
     def get_initial(self):
         initial = super().get_initial()

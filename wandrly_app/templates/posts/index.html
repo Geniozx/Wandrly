@@ -1,16 +1,17 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block head %}
-<link rel="stylesheet" href="{% static '' %}" />
+<link rel="stylesheet" href="{% static 'css/post.css' %}" />
 {% endblock %}
+
 {% block content %}
 
 <section class="page-header">
   <h1>My Posts</h1>
 </section>
 
-
-<div id="map" style="height: 500px;"></div>
+<!-- Map -->
+<div id="map" style="height: 500px; margin-bottom: 30px;"></div>
 <script>
   var map = L.map("map").setView([20, 0], 2);
 
@@ -23,5 +24,24 @@
     marker.bindPopup("<b>{{ c.city }}, {{ c.country }}</b><br>{{ c.caption }}<br><a href='{% url 'post-detail' c.id %}'>View Post</a>");
   {% endfor %}
 </script>
+
+
+<div class="post-container">
+  {% for post in posts %}
+    <div class="post-card">
+      {% if post.media %}
+        <img src="{{ post.media.url }}" alt="Post image">
+      {% endif %}
+      <div class="post-card-content">
+        <h3>{{ post.location }}</h3>
+        <p>{{ post.caption|truncatewords:20 }}</p>
+        <p class="meta">{{ post.created_at|date:"M d, Y" }}</p>
+        <a href="{% url 'post-detail' post.id %}" class="btn">View Post</a>
+      </div>
+    </div>
+  {% empty %}
+    <p>No posts yet. <a href="{% url 'post-create' %}">Create one!</a></p>
+  {% endfor %}
+</div>
 
 {% endblock %}

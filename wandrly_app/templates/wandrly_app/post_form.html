@@ -1,42 +1,56 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/post_form.css' %}" />
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  {% if post %}
-    <h1>Edit Post {{ post.id }}</h1>
-  {% else %}
-    <h1>Make a Post</h1>
-  {% endif %}
+<div class="post-form-container">
+  <h1>{% if post %}Edit Post {{ post.id }}{% else %}Create a New Post{% endif %}</h1>
+
+  <form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label for="{{ form.media.id_for_label }}">Post Image</label>
+    {{ form.media }}
+
+    <label for="{{ form.caption.id_for_label }}">Caption</label>
+    {{ form.caption }}
+
+    <label for="{{ form.city.id_for_label }}">City</label>
+    {{ form.city }}
+
+    <label for="{{ form.country.id_for_label }}">Country</label>
+    {{ form.country }}
+
+    <input type="hidden" id="id_latitude" name="latitude" value="{{ form.initial.latitude }}">
+    <input type="hidden" id="id_longitude" name="longitude" value="{{ form.initial.longitude }}">
+
+    <div id="map"></div>
+
+    <button type="submit" class="btn submit">Submit!</button>
+  </form>
 </div>
 
-<form action="" method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  {{ form.as_p }}
-
-  <input type="hidden" id="id_latitude" name="latitude" value="{{ form.initial.latitude }}">
-  <input type="hidden" id="id_longitude" name="longitude" value="{{ form.initial.longitude }}">
-
-  <div id="map" style="height: 400px; margin: 1em 0;"></div>
-
-  <button type="submit" class="btn submit">Submit!</button>
-</form>
-
 <script>
-  var defaultLat = parseFloat(document.getElementById("id_latitude").value) || 20;
-  var defaultLng = parseFloat(document.getElementById("id_longitude").value) || 0;
-  var map = L.map('map').setView([defaultLat, defaultLng], (defaultLat && defaultLng) ? 6 : 2);
+  const defaultLat = parseFloat(document.getElementById("id_latitude").value) || 20;
+  const defaultLng = parseFloat(document.getElementById("id_longitude").value) || 0;
+
+  const map = L.map('map').setView([defaultLat, defaultLng], (defaultLat && defaultLng) ? 6 : 2);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
   }).addTo(map);
 
-  var marker;
+  let marker;
   if (defaultLat && defaultLng) {
     marker = L.marker([defaultLat, defaultLng]).addTo(map);
   }
 
   map.on('click', function(e) {
-    var lat = e.latlng.lat;
-    var lng = e.latlng.lng;
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
 
     document.getElementById("id_latitude").value = lat;
     document.getElementById("id_longitude").value = lng;
