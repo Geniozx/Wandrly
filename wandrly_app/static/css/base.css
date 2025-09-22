@@ -1,4 +1,130 @@
 
-body {
-  background-color: rgb(180, 233, 253);
+:root {
+  --soft-coral: #F88379;
+  --teal: #008080;
+  --light-bg: #FDFDFD;
+  --text-color: #333;
+  --accent: #F7CAC9;
 }
+
+
+body {
+  margin: 0;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: var(--light-bg);
+  color: var(--text-color);
+}
+
+a {
+  text-decoration: none;
+  color: var(--teal);
+}
+
+a:hover {
+  color: var(--soft-coral);
+}
+
+
+.navbar {
+  width: 100%;
+  background-color: var(--soft-coral);
+  padding: 0.8em 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar .container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar .logo img {
+  height: 50px;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.5em;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+
+.nav-links li a {
+  color: white;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.nav-links li a:hover {
+  color: var(--teal);
+}
+
+.nav-links .username {
+  font-weight: bold;
+  color: white;
+}
+
+
+.main-content {
+  width: 90%;
+  max-width: 1200px;
+  margin: 2em auto;
+}
+
+
+.footer {
+  text-align: center;
+  padding: 1em 0;
+  background-color: var(--teal);
+  color: white;
+  margin-top: 3em;
+  font-size: 0.9em;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+}
+
+
+.btn {
+  padding: 0.5em 1em;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.btn.submit {
+  background-color: var(--teal);
+  color: white;
+}
+
+.btn.submit:hover {
+  background-color: var(--soft-coral);
+}
+
+.btn.danger {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.btn.danger:hover {
+  background-color: #c0392b;
+}
+
+.btn.warn {
+  background-color: #f39c12;
+  color: white;
+}
+
+.btn.secondary {
+  background-color: #95a5a6;
+  color: white;
+}
+

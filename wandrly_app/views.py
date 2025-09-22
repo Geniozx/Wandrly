@@ -8,6 +8,7 @@ from .models import Post, Profile
 from .forms import CommentForm, UserCreationForm, UserForm, ProfileForm, PostForm
 
 
+
 def home(request):
     posts = Post.objects.all().order_by("-created_at")
 
@@ -75,19 +76,35 @@ def add_comment(request, post_id):
         new_comment.save()
     return redirect('post-detail', post_id=post_id)
 
+
 class PostCreate(LoginRequiredMixin, CreateView):
     form_class = PostForm
     template_name = 'wandrly_app/post_form.html'
 
     def form_valid(self, form):
-        form.save(user=self.request.user)
-        return redirect('post-index')
+        post = form.save(user=self.request.user)
+        return redirect('post-detail', post_id=post.id)
 
 
 class PostUpdate(LoginRequiredMixin, UpdateView):
     login_url = 'login'
     model = Post
-    fields = ['media', 'caption', 'location']
+    form_class = PostForm
+    template_name = 'wandrly_app/post_form.html'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.object.location:
+            initial['city'] = self.object.location.city
+            initial['country'] = self.object.location.country
+            if self.object.location.coordinates:
+                initial['latitude'] = self.object.location.coordinates.y
+                initial['longitude'] = self.object.location.coordinates.x
+        return initial
+
+    def form_valid(self, form):
+        post = form.save(user=self.request.user, instance=self.object)
+        return redirect('post-detail', post_id=post.id)
 
 
 class PostDelete(LoginRequiredMixin, DeleteView):

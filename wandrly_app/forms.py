@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Profile, Comment, Post, Location
+from django.contrib.gis.geos import Point
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -42,22 +43,47 @@ class ProfileForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     city = forms.CharField(max_length=100, required=False)
     country = forms.CharField(max_length=100, required=False)
-    latitude = forms.FloatField(widget=forms.HiddenInput())
-    longitude = forms.FloatField(widget=forms.HiddenInput())
+    latitude = forms.FloatField(widget=forms.HiddenInput(), required=False)
+    longitude = forms.FloatField(widget=forms.HiddenInput(), required=False)
 
     class Meta:
         model = Post
         fields = ['media', 'caption']
 
-    def save(self, commit=True, user=None):
-        loc = Location.objects.create(
-            city=self.cleaned_data.get('city', ''),
-            country=self.cleaned_data.get('country', ''),
-            coordinates=f"POINT({self.cleaned_data['longitude']} {self.cleaned_data['latitude']})"
-        )
+    def save(self, commit=True, user=None, instance=None):
         post = super().save(commit=False)
-        post.user = user
-        post.location = loc
+
+        if instance:
+            post = instance
+            post.caption = self.cleaned_data.get('caption', instance.caption)
+            if self.cleaned_data.get('media'):
+                post.media = self.cleaned_data.get('media')
+
+        if user:
+            post.user = user
+
+        city = self.cleaned_data.get('city', '')
+        country = self.cleaned_data.get('country', '')
+        lat = self.cleaned_data.get('latitude')
+        lng = self.cleaned_data.get('longitude')
+
+        coordinates = Point(lng, lat) if lat is not None and lng is not None else None
+
+        if post.location:
+            loc = post.location
+            loc.city = city or loc.city
+            loc.country = country or loc.country
+            if coordinates:
+                loc.coordinates = coordinates
+            loc.save()
+        elif city or country or coordinates:
+            loc = Location.objects.create(
+                city=city or '',
+                country=country or '',
+                coordinates=coordinates
+            )
+            post.location = loc
+
         if commit:
             post.save()
         return post

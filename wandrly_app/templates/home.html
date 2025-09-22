@@ -1,56 +1,59 @@
-{% extends 'base.html' %} {% load static %} {% block head %}
-<link
-  rel="stylesheet"
-  href="{% static '' %}"
-/>
-{% endblock %} {% block content %}
+{% extends 'base.html' %}
+{% load static %}
 
-<section class="logo-container">
-  <div class="post-container">
-    <img
-      src="{% static '' %}"
-      alt="Wandrly"
-    />
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+
+
+<section class="home-hero">
+  <div class="logo-container">
+    <img src="{% static '' %}" alt="Wandrly Logo" />
+    <h1>Explore Posts Around the World</h1>
   </div>
-  <!-- <img
-    src="{% static '' %}"
-    alt="Text reads: Wandrly"
-  /> -->
 </section>
 
-<div id="map" style="height: 600px; width: 100%;"></div>
+
+<div id="map" class="home-map"></div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     const map = L.map("map").setView([20, 0], 2);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
+        maxZoom: 19,
     }).addTo(map);
 
     const coords = {{ coords|safe }};
     const userAuthenticated = {{ user_authenticated|yesno:"true,false" }};
 
     coords.forEach(point => {
-      const marker = L.marker([point.lat, point.lng]).addTo(map);
+        const marker = L.marker([point.lat, point.lng]).addTo(map);
 
-      let popupContent = `<b>${point.city}, ${point.country}</b><br>${point.caption}`;
+        let popupContent = `
+            <div class="popup-card">
+                <b>${point.city}, ${point.country}</b>
+                <p>${point.caption}</p>
+        `;
 
-      if (userAuthenticated) {
-        popupContent += `<br><a href="/posts/${point.id}/">View Post</a>`;
-        if (point.full_content) {
-          popupContent += `<p>${point.full_content}</p>`;
+        if (userAuthenticated) {
+            popupContent += `<a href="/posts/${point.id}/" class="popup-link">View Post</a>`;
+            if (point.full_content) {
+                popupContent += `<p>${point.full_content}</p>`;
+            }
+            if (point.image_url) {
+                popupContent += `<img src="${point.image_url}" alt="post image" class="popup-img">`;
+            }
+        } else {
+            popupContent += `<em><a href="{% url 'login' %}">Login</a> or <a href="{% url 'signup' %}">Sign up</a> to view full posts.</em>`;
         }
-        if (point.image_url) {
-          popupContent += `<img src="${point.image_url}" alt="post image" style="max-width:200px;">`;
-        }
-      } else {
-        popupContent += `<br><em><a href="{% url 'login' %}">Login</a> or <a href="{% url 'signup' %}">Sign up</a> to view full posts.</em>`;
-      }
 
-      marker.bindPopup(popupContent);
+        popupContent += `</div>`;
+        marker.bindPopup(popupContent);
     });
-  });
+});
 </script>
 
 {% endblock %}

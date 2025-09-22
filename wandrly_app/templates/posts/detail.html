@@ -18,10 +18,10 @@
     <p>{{ post.caption }}</p>
     <p><small>{{ post.created_at }}</small></p>
 
-    <!-- Likes -->
+
     <p>Likes: {{ post.likes.count }}</p>
 
-    <!-- Comments -->
+
     <h3>Comments</h3>
     {% for comment in post.comments.all %}
       <p><b>{{ comment.user.username }}</b>: {{ comment.text }}</p>
@@ -29,30 +29,18 @@
       <p>No comments yet.</p>
     {% endfor %}
 
-    <!-- Add a new comment -->
+
     <form action="{% url 'add-comment' post.id %}" method="post" class="subsection-content" autocomplete="off">
       {% csrf_token %}
       {{ comment_form.as_p }}
       <button type="submit" class="btn submit">Add Comment</button>
     </form>
 
-    <!-- Actions -->
+
     <div class="post-actions">
       <a href="{% url 'post-update' post.id %}" class="btn warn">Edit</a>
       <a href="{% url 'post-delete' post.id %}" class="btn danger">Delete</a>
     </div>
   </div>
 </section>
-
-  <!-- <div id="map" style="height: 500px; width: 100%;"></div>
-  <script>
-  var map = L.map('map').setView([20, 0], 2);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
-    {% if coords %}
-    var marker = L.marker([{{ coords.lat }}, {{ coords.lng }}]).addTo(map);
-    marker.bindPopup("<b>{{ post.location.city }}, {{ post.location.country }}</b><br>{{ post.caption }}").openPopup();
-    map.setView([{{ coords.lat }}, {{ coords.lng }}], 6);
-    {% endif %}
-    </script> -->
   {% endblock %}
