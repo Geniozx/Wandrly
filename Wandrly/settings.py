@@ -38,7 +38,6 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.gis',
     'wandrly_app',
     'django.contrib.admin',
     'django.contrib.auth',
