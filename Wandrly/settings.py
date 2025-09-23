@@ -94,7 +94,7 @@ if 'ON_HEROKU' in os.environ:
 else:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
             'NAME': 'wandrly',
             'USER': 'wandrly_user',
             'PASSWORD': '12Qwaszx@!',
