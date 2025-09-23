@@ -51,43 +51,38 @@ class PostForm(forms.ModelForm):
         fields = ['media', 'caption']
 
     def save(self, commit=True, user=None, instance=None):
-        if instance:
-            post = instance
-            post.caption = self.cleaned_data.get('caption', instance.caption)
-            if self.cleaned_data.get('media'):
-                post.media = self.cleaned_data.get('media')
-        else:
-            post = super().save(commit=False)
+        post = instance if instance else super().save(commit=False)
 
-        if user:
+
+        if user and not post.pk: 
             post.user = user
 
 
-        city = self.cleaned_data.get('city', '')
-        country = self.cleaned_data.get('country', '')
+        post.caption = self.cleaned_data.get('caption', post.caption)
+        media = self.cleaned_data.get('media')
+        if media:
+            post.media = media
+
+
+        city = self.cleaned_data.get('city')
+        country = self.cleaned_data.get('country')
         lat = self.cleaned_data.get('latitude')
         lng = self.cleaned_data.get('longitude')
 
+        if city or country or lat is not None or lng is not None:
 
-        if post.location:
-            loc = post.location
-            if city:
-                loc.city = city
-            if country:
-                loc.country = country
-            if lat is not None:
-                loc.latitude = lat
-            if lng is not None:
-                loc.longitude = lng
+            if hasattr(post, 'location') and post.location:
+                loc = post.location
+            else:
+                loc = Location()
+            
+            loc.city = city or loc.city
+            loc.country = country or loc.country
+            loc.latitude = lat if lat is not None else loc.latitude
+            loc.longitude = lng if lng is not None else loc.longitude
             loc.save()
-        elif city or country or lat is not None or lng is not None:
-            loc = Location.objects.create(
-                city=city or '',
-                country=country or '',
-                latitude=lat,
-                longitude=lng
-            )
             post.location = loc
+
 
         if commit:
             post.save()
