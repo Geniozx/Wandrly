@@ -24,8 +24,9 @@
     <label for="{{ form.country.id_for_label }}">Country</label>
     {{ form.country }}
 
-    <input type="hidden" id="id_latitude" name="latitude" value="{{ form.initial.latitude }}">
-    <input type="hidden" id="id_longitude" name="longitude" value="{{ form.initial.longitude }}">
+    <input type="hidden" id="id_latitude" name="latitude" value="{{ form.initial.latitude|default:'' }}">
+    <input type="hidden" id="id_longitude" name="longitude" value="{{ form.initial.longitude|default:'' }}">
+
 
     <div id="map"></div>
 

@@ -91,7 +91,7 @@ class PostUpdate(LoginRequiredMixin, UpdateView):
     login_url = 'login'
     model = Post
     form_class = PostForm
-    template_name = 'posts/post_form.html'
+    template_name = 'wandrly_app/post_form.html'
 
     def get_initial(self):
         initial = super().get_initial()
