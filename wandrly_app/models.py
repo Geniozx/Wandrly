@@ -1,7 +1,6 @@
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
-from django.contrib.gis.db import models as gis_models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -10,10 +9,10 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(max_length=500, blank=True)
 
-
     def __str__(self):
         return self.user.username
-    
+
+
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -23,8 +22,6 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
             instance.profile.save()
 
 
-
-    
 class Location(models.Model):
     continent = models.CharField(max_length=50)
     continent_code = models.CharField(max_length=5)
@@ -33,10 +30,20 @@ class Location(models.Model):
     city = models.CharField(max_length=100, blank=True, null=True)
     district = models.CharField(max_length=100, blank=True, null=True)
     zipcode = models.CharField(max_length=20, blank=True, null=True)
-    coordinates = gis_models.PointField(geography=True, blank=True, null=True)
+
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.city}, {self.country} ({self.continent})"
+        parts = []
+        if self.city:
+            parts.append(self.city)
+        if self.country:
+            parts.append(self.country)
+        if self.continent:
+            parts.append(f"({self.continent})")
+        return ", ".join(parts) if parts else "Unknown location"
+
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
@@ -48,11 +55,11 @@ class Post(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: {self.caption[:2200]}"
-    
+
     def get_absolute_url(self):
         return reverse('post-detail', kwargs={'post_id': self.id})
-    
-    
+
+
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")

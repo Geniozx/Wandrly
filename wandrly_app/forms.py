@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Profile, Comment, Post, Location
-from django.contrib.gis.geos import Point
+
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -62,14 +62,12 @@ class PostForm(forms.ModelForm):
         if user:
             post.user = user
 
+
         city = self.cleaned_data.get('city', '')
         country = self.cleaned_data.get('country', '')
         lat = self.cleaned_data.get('latitude')
         lng = self.cleaned_data.get('longitude')
 
-        coordinates = None
-        if lat not in (None, '') and lng not in (None, ''):
-            coordinates = Point(float(lng), float(lat))
 
         if post.location:
             loc = post.location
@@ -77,14 +75,17 @@ class PostForm(forms.ModelForm):
                 loc.city = city
             if country:
                 loc.country = country
-            if coordinates:
-                loc.coordinates = coordinates
+            if lat is not None:
+                loc.latitude = lat
+            if lng is not None:
+                loc.longitude = lng
             loc.save()
-        elif city or country or coordinates:
+        elif city or country or lat is not None or lng is not None:
             loc = Location.objects.create(
                 city=city or '',
                 country=country or '',
-                coordinates=coordinates
+                latitude=lat,
+                longitude=lng
             )
             post.location = loc
 

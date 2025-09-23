@@ -8,16 +8,15 @@ from .models import Post, Profile
 from .forms import CommentForm, UserCreationForm, UserForm, ProfileForm, PostForm
 
 
-
 def home(request):
     posts = Post.objects.all().order_by("-created_at")
 
     coords = []
     for p in posts:
-        if p.location and p.location.coordinates:
+        if p.location and p.location.latitude and p.location.longitude:
             coords.append({
-                "lat": p.location.coordinates.y,
-                "lng": p.location.coordinates.x,
+                "lat": p.location.latitude,
+                "lng": p.location.longitude,
                 "caption": p.caption,
                 "city": p.location.city,
                 "country": p.location.country,
@@ -29,20 +28,21 @@ def home(request):
         "user_authenticated": request.user.is_authenticated
     })
 
+
 @login_required(login_url="login")
 def post_index(request):
     posts = Post.objects.all().order_by('-created_at')
     comment_form = CommentForm
     coords = [
         {
-            "lat": p.location.coordinates.y,
-            "lng": p.location.coordinates.x,
+            "lat": p.location.latitude,
+            "lng": p.location.longitude,
             "caption": p.caption,
             "city": p.location.city,
             "country": p.location.country,
             "id": p.id
         }
-        for p in posts if p.location and p.location.coordinates
+        for p in posts if p.location and p.location.latitude and p.location.longitude
     ]
     return render(request, 'posts/index.html', {
         'posts': posts,
@@ -50,21 +50,23 @@ def post_index(request):
         'coords': coords
     })
 
+
 @login_required(login_url="login")
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     comment_form = CommentForm
     coords = None
-    if post.location and post.location.coordinates:
+    if post.location and post.location.latitude and post.location.longitude:
         coords = {
-            "lat": post.location.coordinates.y,
-            "lng": post.location.coordinates.x,
+            "lat": post.location.latitude,
+            "lng": post.location.longitude,
         }
     return render(request, 'posts/detail.html', {
         'post': post,
         'comment_form': comment_form,
         'coords': coords
     })
+
 
 @login_required(login_url="login")
 def add_comment(request, post_id):
@@ -82,8 +84,8 @@ class PostCreate(LoginRequiredMixin, CreateView):
     template_name = 'wandrly_app/post_form.html'
 
     def form_valid(self, form):
-        # Pass the user to form.save
-        post = form.save(user=self.request.user)
+        form.instance.user = self.request.user
+        post = form.save()
         return redirect('post-index')
 
 
@@ -98,13 +100,14 @@ class PostUpdate(LoginRequiredMixin, UpdateView):
         if self.object.location:
             initial['city'] = self.object.location.city
             initial['country'] = self.object.location.country
-            if self.object.location.coordinates:
-                initial['latitude'] = self.object.location.coordinates.y
-                initial['longitude'] = self.object.location.coordinates.x
+            if self.object.location.latitude and self.object.location.longitude:
+                initial['latitude'] = self.object.location.latitude
+                initial['longitude'] = self.object.location.longitude
         return initial
 
     def form_valid(self, form):
-        post = form.save(user=self.request.user, instance=self.object)
+        form.instance.user = self.request.user
+        post = form.save()
         return redirect('post-detail', post_id=post.id)
 
 
@@ -144,6 +147,7 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, "registration/login.html", {"form": form})
 
+
 def logout_view(request):
     logout(request)
     return redirect("home")
@@ -168,7 +172,5 @@ def profile_edit(request):
         "user_form": user_form,
         "profile_form": profile_form
     })
-
-
 
 
