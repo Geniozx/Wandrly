@@ -125,15 +125,11 @@ def signup_view(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            Profile.objects.create(
-                user=user,
-                bio=form.cleaned_data.get("bio", "")
-            )
             login(request, user)
             return redirect("home")
-    else:
-        form = UserCreationForm()
-    return render(request, "registration/signup.html", {"form": form})
+        else:
+            form = UserCreationForm()
+            return render(request, "registration/signup.html", {"form": form})
 
 
 def login_view(request):
