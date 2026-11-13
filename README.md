@@ -207,3 +207,61 @@ python -m pip check
 - [x] Database connection and restored records verified
 - [x] Reproducible backend requirements recorded
 
+
+
+---
+
+## Roamly 2.0 — Phase 3: Database Schema Modernization
+
+### Milestone 1 — Profile and Post Foundations ✅
+
+Development database: `roamly_dev`
+
+#### Migration 0003 — Profile and Post Schema
+
+Extended the existing Django models without replacing their original records or relationships.
+
+Profile enhancements:
+- `display_name` — public-facing profile name
+- `avatar` — optional profile image
+- `is_private` — account privacy setting, defaulting to public
+
+Post enhancements:
+- `post_type` — travel post or travel journal
+- `visibility` — public or private
+- `updated_at` — automatic modification timestamp
+
+Historical posts retain their original `created_at` values. The migration backfills `updated_at` from `created_at`.
+
+The original Post.media field remains intact pending the future multi-image migration.
+
+#### Migration 0004 — Existing Profile Backfill
+
+Created missing Profile records for existing users using a historical-model data migration.
+
+- Existing users preserved: 2
+- Profiles after migration: 2
+- Default account privacy: public
+- Existing authentication records preserved
+
+#### Post-Migration Integrity Verification
+
+All checks passed:
+
+- Users: 2
+- Profiles: 2
+- Posts: 3
+- Comments: 1
+- Locations: 6
+- Post media files: 3 of 3 available
+- Existing posts default to travel/public
+- Historical post timestamps preserved
+- No unexpected model changes detected
+
+Both migrations were successfully applied to `roamly_dev`.
+
+The original `wandrly` database remains outside the migration target.
+
+### Next Milestone
+
+Introduce the PostMedia model to support multiple ordered images per post while preserving existing media references.

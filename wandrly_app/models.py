@@ -5,12 +5,31 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
+
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    bio = models.TextField(max_length=500, blank=True)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+    )
+    display_name = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+    bio = models.TextField(
+        max_length=500,
+        blank=True,
+    )
+    avatar = models.ImageField(
+        upload_to="avatars/",
+        blank=True,
+    )
+    is_private = models.BooleanField(
+        default=False,
+    )
 
     def __str__(self):
         return self.user.username
+
 
 
 @receiver(post_save, sender=User)
@@ -45,19 +64,65 @@ class Location(models.Model):
         return ", ".join(parts) if parts else "Unknown location"
 
 
+
 class Post(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
-    media = models.ImageField(upload_to="posts/")
-    caption = models.TextField(blank=True)
-    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, related_name="posts")
-    likes = models.ManyToManyField(User, related_name="liked_posts", blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    class PostType(models.TextChoices):
+        TRAVEL = "travel", "Travel Post"
+        JOURNAL = "journal", "Travel Journal"
+
+    class Visibility(models.TextChoices):
+        PUBLIC = "public", "Public"
+        PRIVATE = "private", "Private"
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="posts",
+    )
+    media = models.ImageField(
+        upload_to="posts/",
+    )
+    caption = models.TextField(
+        blank=True,
+    )
+    location = models.ForeignKey(
+        Location,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="posts",
+    )
+    likes = models.ManyToManyField(
+        User,
+        related_name="liked_posts",
+        blank=True,
+    )
+    post_type = models.CharField(
+        max_length=20,
+        choices=PostType.choices,
+        default=PostType.TRAVEL,
+    )
+    visibility = models.CharField(
+        max_length=10,
+        choices=Visibility.choices,
+        default=Visibility.PUBLIC,
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        null=True,
+    )
 
     def __str__(self):
         return f"{self.user.username}: {self.caption[:2200]}"
 
     def get_absolute_url(self):
-        return reverse('post-detail', kwargs={'post_id': self.id})
+        return reverse(
+            "post-detail",
+            kwargs={"post_id": self.id},
+        )
+
 
 
 class Comment(models.Model):
