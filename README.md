@@ -416,3 +416,55 @@ The Django REST API will handle:
 - Re-requesting access after declined or canceled requests.
 - Transactional approval of follow requests.
 - Privacy-aware access to profiles, posts, and media.
+
+
+
+### Phase 3 — Saved Posts & Bookmarks ✅
+
+Established the database foundation for Roamly's Saved Posts feature.
+
+#### SavedPost Model
+
+- Stores bookmarks linking users to saved posts.
+- Supports both travel posts and travel journal entries through the unified Post model.
+- Records when each bookmark was created.
+- Orders saved posts by most recently saved.
+- Provides reverse relationships:
+  - `user.saved_posts`
+  - `post.saved_by`
+- Prevents duplicate bookmarks using the `unique_saved_post` database constraint.
+- Uses Django cascade deletion for bookmarks when their associated user or post is deleted.
+
+#### Database Migration
+
+Migration `0009_savedpost.py`:
+
+- Creates the `SavedPost` table.
+- Adds foreign keys to User and Post.
+- Adds database indexes and the unique bookmark constraint.
+- Does not modify existing users, profiles, posts, or media.
+
+#### Verification
+
+- Confirmed the target database was `roamly_dev`.
+- Applied migration `0009` successfully.
+- Verified valid bookmark creation.
+- Verified duplicate bookmarks are rejected.
+- Verified user and post relationships.
+- Confirmed temporary test records were rolled back.
+- Django system checks passed.
+- No additional migrations detected.
+
+#### Future API Implementation
+
+The Django REST API will support:
+
+- Saving and unsaving posts.
+- Retrieving a user's saved posts.
+- Checking whether a post is saved by the current user.
+- Privacy-aware access to saved content.
+- Pagination and ordering for saved posts.
+
+Saving a post will not override its visibility or the author's profile privacy settings.
+
+Cascade deletion behavior is configured in the model and will receive dedicated testing during API development.
