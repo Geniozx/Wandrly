@@ -1291,3 +1291,69 @@ Future phases will implement:
 
 The database foundation is complete. Historical destination
 backfilling and destination-facing APIs are not yet implemented.
+
+
+### Phase 3B — Historical Destination Backfill ✅
+
+Populated the canonical Destination model using existing
+Wandrly location records without modifying historical
+geographic coordinates or post associations.
+
+#### Migration
+
+Migration `0020_backfill_historical_destinations.py`:
+
+- Depends on `0019_destination_location_destination`.
+- Uses Django RunPython with historical model access.
+- Creates four canonical destination records.
+- Associates six historical locations with those destinations.
+- Validates expected historical location IDs and metadata.
+- Rejects unexpected existing destination assignments.
+- Rejects conflicting destination slugs.
+- Includes a reverse migration for controlled rollback.
+
+#### Canonical Destination Mapping
+
+- Aguas Calientes, Peru: Location 1.
+- Jacksonville, Florida, United States: Locations 2 and 3.
+- Ica, Peru: Location 4.
+- Rio Grande, Puerto Rico: Locations 5 and 6.
+
+#### Historical Data Preservation
+
+The backfill does not modify:
+
+- Original Location IDs.
+- Original latitude or longitude values.
+- Original city or country values.
+- Existing Post.location foreign keys.
+- Historical posts and their associated content.
+
+Location 4 retains its historical country value of Lima,
+while its canonical destination identifies Ica, Peru.
+
+The potentially inconsistent coordinates for Location 2
+remain unchanged pending separate geographic validation.
+
+#### Verification
+
+- Confirmed the active database was roamly_dev.
+- Successfully applied migration 0020.
+- Verified four canonical destinations.
+- Verified six destination-to-location associations.
+- Confirmed all historical posts retained their locations.
+- Verified historical geographic metadata was preserved.
+- Verified the destination grouping matches the intended mapping.
+- Confirmed Django system checks passed.
+- Confirmed no additional model migrations were required.
+
+#### Future Work
+
+- Implement destination serializers and API endpoints.
+- Add destination-specific pages.
+- Support destination-based search and discovery.
+- Enforce post and profile privacy in destination feeds.
+- Review geographic metadata inconsistencies.
+- Define destination creation and slug collision handling.
+
+Historical destination backfilling is complete.
