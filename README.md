@@ -668,3 +668,68 @@ The upcoming API and React implementation will provide:
 
 These behaviors are planned and are not yet implemented
 in the API or frontend.
+
+
+### Phase 3B — Comment Likes Foundation ✅
+
+Established the database foundation for liking comments and
+nested replies in Roamly 2.0.
+
+#### CommentLike Model
+
+Introduced the `CommentLike` model with:
+
+- `user` — User who liked the comment or reply.
+- `comment` — Comment or nested reply receiving the like.
+- `created_at` — Timestamp recording when the like occurred.
+
+#### Relationships and Constraints
+
+- `comment.likes` — Access likes associated with a comment.
+- `user.comment_likes` — Access comments liked by a user.
+- `unique_comment_like` — Prevents duplicate likes from
+  the same user on the same comment.
+- Foreign-key indexes support efficient relationship queries.
+- Chronological ordering by newest likes first.
+
+Because replies use the existing `Comment` model, likes on
+top-level comments and nested replies share one database table.
+
+#### Migration
+
+Migration `0013_commentlike.py`:
+
+- Creates the `wandrly_app_commentlike` table.
+- Adds foreign keys to the existing User and Comment models.
+- Enforces unique user/comment like relationships.
+- Preserves existing comments, replies, posts, and users.
+- Applies to the isolated `roamly_dev` PostgreSQL database.
+
+#### Verification
+
+- Confirmed the target database was `roamly_dev`.
+- Successfully applied migration `0013`.
+- Verified creation of comment likes.
+- Verified multiple users can like the same comment.
+- Verified reverse relationship queries.
+- Confirmed duplicate likes are rejected.
+- Verified likes on nested replies.
+- Confirmed comment and reply like counts.
+- Rolled back all temporary test records.
+- Django system checks passed.
+- No pending migrations or model changes detected.
+
+#### Planned API and Frontend Behavior
+
+The upcoming Django REST API and React frontend will support:
+
+- Like and unlike actions on comments and replies.
+- Displaying comment and reply like counts.
+- Showing whether the authenticated user liked a comment.
+- Privacy-aware comment interactions.
+- Blocked-user interaction restrictions.
+- Comment-like notifications.
+- Efficient pagination and query optimization.
+
+These features are planned and are not yet implemented
+in the API or frontend.

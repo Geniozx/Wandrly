@@ -425,3 +425,32 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: {self.text[:500]}"
+
+
+class CommentLike(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="comment_likes",
+    )
+    comment = models.ForeignKey(
+        Comment,
+        on_delete=models.CASCADE,
+        related_name="likes",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "comment"],
+                name="unique_comment_like",
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.user.username} liked "
+            f"comment {self.comment_id}"
+        )
