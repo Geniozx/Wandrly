@@ -187,6 +187,12 @@ class Post(models.Model):
         PUBLIC = "public", "Public"
         PRIVATE = "private", "Private"
 
+
+    class PublicationStatus(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        PUBLISHED = "published", "Published"
+
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -222,6 +228,15 @@ class Post(models.Model):
         max_length=10,
         choices=Visibility.choices,
         default=Visibility.PUBLIC,
+    )
+    publication_status = models.CharField(
+        max_length=10,
+        choices=PublicationStatus.choices,
+        default=PublicationStatus.PUBLISHED,
+    )
+    published_at = models.DateTimeField(
+        null=True,
+        blank=True,
     )
     created_at = models.DateTimeField(
         auto_now_add=True,

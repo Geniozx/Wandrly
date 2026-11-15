@@ -886,3 +886,101 @@ The upcoming Django REST API and React frontend will support:
 
 These behaviors are planned and are not yet implemented
 in the API or frontend.
+
+
+### Phase 3B — Post Drafts & Publishing State Foundation ✅
+
+Established the database foundation for saving drafts and
+publishing travel posts and journals in Roamly 2.0.
+
+#### Publication Status
+
+Extended the existing Post model with two publication states:
+
+- `draft` — An unfinished post that has not been published.
+- `published` — A post that has been published.
+
+The `publication_status` field defaults to `published` to
+preserve compatibility with historical posts.
+
+Publication status remains separate from post visibility.
+
+The existing `visibility` field continues to support:
+
+- `public`
+- `private`
+
+This allows drafts to retain their intended visibility
+before publication.
+
+#### Publication Timestamp
+
+Added a nullable `published_at` field.
+
+- Drafts can exist without a publication timestamp.
+- Published posts can record their first publication time.
+- Editing a published post should preserve its original
+  publication timestamp.
+- The publishing API will manage publication transitions.
+
+#### Historical Data Preservation
+
+Migration `0016` includes a controlled data backfill.
+
+Existing published posts receive their original `created_at`
+timestamp as their `published_at` value.
+
+The backfill uses Django's historical model registry and
+the migration's database connection.
+
+Historical post IDs `1`, `4`, and `6` remain unchanged.
+
+Existing captions, visibility settings, media relationships,
+and creation timestamps are preserved.
+
+#### Migration
+
+Migration
+`0016_post_publication_status_post_published_at.py`:
+
+- Adds `publication_status` to the Post model.
+- Adds nullable `published_at`.
+- Defaults historical posts to `published`.
+- Backfills publication timestamps from `created_at`.
+- Preserves existing post and media relationships.
+- Uses a reversible schema migration with a no-op
+  reverse operation for the data backfill.
+
+#### Verification
+
+- Confirmed the target database was `roamly_dev`.
+- Successfully applied migration `0016`.
+- Verified historical post IDs `1`, `4`, and `6`.
+- Confirmed all historical posts remain published.
+- Verified original publication timestamps.
+- Confirmed historical visibility remains public.
+- Successfully created a temporary draft.
+- Verified drafts can have a null publication timestamp.
+- Tested a draft-to-published transition.
+- Confirmed editing preserved the publication timestamp.
+- Rolled back all temporary test records.
+- Django system checks passed.
+- No pending migrations or model changes detected.
+
+#### Planned API and Frontend Behavior
+
+The upcoming Django REST API and React frontend will support:
+
+- Creating and saving unfinished drafts.
+- Editing and deleting owned drafts.
+- Publishing drafts as travel posts or journals.
+- Preserving the first publication timestamp.
+- Separating publication status from visibility.
+- Restricting draft access to the owner.
+- Excluding drafts from public feeds, search, and maps.
+- Supporting draft management in the user interface.
+- Warning users about unsaved changes.
+
+The database foundation is complete. Draft access controls,
+publishing workflows, and frontend functionality are not
+yet implemented.
