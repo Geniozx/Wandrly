@@ -1357,3 +1357,46 @@ remain unchanged pending separate geographic validation.
 - Define destination creation and slug collision handling.
 
 Historical destination backfilling is complete.
+
+
+## Phase 4 — REST API Foundation
+
+### API routing
+
+Roamly 2.0 introduces Django REST Framework with versioned API routes under `/api/v1/`.
+
+The existing Django application routes remain available during the frontend modernization.
+
+**Initial endpoint**
+
+| Method | Endpoint | Authentication |
+|---|---|---|
+| GET | `/api/v1/health/` | Public |
+
+The health endpoint returns the API's service name, version, and operational status.
+
+### Authentication and permissions
+
+The REST API uses Django session authentication.
+
+Default API permissions require authenticated users. Endpoints intended for public access must explicitly override this default.
+
+CSRF protection is required for authenticated unsafe requests. Authentication endpoints will receive additional CSRF protections during their implementation.
+
+### Automated testing
+
+Three initial API tests verify:
+
+1. The health endpoint returns HTTP 200 and the expected JSON response.
+2. Anonymous users can access the health endpoint.
+3. Default API permissions reject anonymous access.
+
+The test suite runs against an isolated PostgreSQL test database.
+
+### Historical migration compatibility
+
+Migration `0020_backfill_historical_destinations` supports fresh installations without historical Wandrly locations.
+
+Existing historical data remains subject to validation before destination associations are created.
+
+The original Wandrly database is preserved separately from the Roamly 2.0 development database.

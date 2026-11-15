@@ -43,6 +43,30 @@ def backfill_destinations(apps, schema_editor):
     Location = apps.get_model("wandrly_app", "Location")
     db_alias = schema_editor.connection.alias
 
+
+    historical_ids = {
+        location_id
+        for item in HISTORICAL_DESTINATIONS
+        for location_id in item["location_ids"]
+    }
+
+    existing_ids = set(
+        Location.objects.using(db_alias)
+        .filter(pk__in=historical_ids)
+        .values_list("pk", flat=True)
+    )
+
+    if not existing_ids:
+        # Fresh installations have no legacy Wandrly locations.
+        return
+
+    if existing_ids != historical_ids:
+        raise RuntimeError(
+            "Historical destination backfill found an "
+            "incomplete set of legacy locations."
+        )
+
+
     for item in HISTORICAL_DESTINATIONS:
         locations = list(
             Location.objects.using(db_alias)
