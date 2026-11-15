@@ -32,6 +32,88 @@ class Profile(models.Model):
 
 
 
+class Follow(models.Model):
+    follower = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="following_relationships",
+    )
+    following = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="follower_relationships",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["follower", "following"],
+                name="unique_follow_relationship",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(follower=models.F("following")),
+                name="prevent_self_follow",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.follower.username} follows {self.following.username}"
+
+
+class FollowRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        ACCEPTED = "accepted", "Accepted"
+        DECLINED = "declined", "Declined"
+        CANCELED = "canceled", "Canceled"
+
+    requester = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="sent_follow_requests",
+    )
+    recipient = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="received_follow_requests",
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["requester", "recipient"],
+                name="unique_follow_request_pair",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(requester=models.F("recipient")),
+                name="prevent_self_follow_request",
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.requester.username} -> "
+            f"{self.recipient.username}: {self.status}"
+        )
+
+
+
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:

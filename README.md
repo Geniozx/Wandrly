@@ -356,3 +356,63 @@ implemented:
 - Custom cover upload and automatic cover fallback
 - Secure media access respecting post privacy
 - Video playback and responsive media presentation
+
+
+### Phase 3 — Social Relationships & Follow Requests ✅
+
+Established the database foundation for Roamly's social following system.
+
+#### Follow Model
+
+- Stores approved follower relationships between users.
+- Supports follower and following queries through related names.
+- Records when each relationship was created.
+- Prevents duplicate follower relationships.
+- Prevents users from following themselves.
+- Automatically removes relationships when associated users are deleted.
+
+#### FollowRequest Model
+
+- Stores requests to follow private profiles.
+- Supports four statuses:
+  - `pending`
+  - `accepted`
+  - `declined`
+  - `canceled`
+- Tracks creation and modification timestamps.
+- Prevents duplicate request pairs.
+- Prevents users from requesting to follow themselves.
+- Supports incoming and outgoing follow-request queries.
+
+#### Database Migration
+
+Migration `0008_follow_followrequest.py`:
+
+- Creates the `Follow` table.
+- Creates the `FollowRequest` table.
+- Adds foreign keys, indexes, and database constraints.
+- Preserves existing users, profiles, posts, and media.
+
+#### Verification
+
+- Django system checks passed.
+- Migration `0008` applied successfully to `roamly_dev`.
+- Valid follow relationships and requests were created successfully.
+- Duplicate follow relationships were rejected.
+- Self-follow attempts were rejected.
+- Duplicate follow requests were rejected.
+- Self-follow requests were rejected.
+- Test records were rolled back successfully.
+- Django detected no additional model changes.
+
+#### Future API Implementation
+
+The Django REST API will handle:
+
+- Immediate following of public profiles.
+- Follow requests for private profiles.
+- Accepting, declining, and canceling follow requests.
+- Unfollowing users.
+- Re-requesting access after declined or canceled requests.
+- Transactional approval of follow requests.
+- Privacy-aware access to profiles, posts, and media.
