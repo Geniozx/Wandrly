@@ -592,3 +592,79 @@ The Django REST API will implement:
 - A blocked accounts management interface.
 
 Blocking behavior and authorization are not yet implemented in the API.
+
+
+### Phase 3B — Threaded Comments Foundation ✅
+
+Extended Roamly 2.0's existing comment system to support
+nested conversations while preserving historical Wandrly data.
+
+#### Comment Model Enhancements
+
+Updated the existing `Comment` model with:
+
+- `parent` — Nullable self-referencing foreign key allowing
+  replies to comments and other replies.
+- `replies` — Reverse relationship for accessing direct replies.
+- `updated_at` — Automatically tracks comment modifications.
+- `user.comments` — Reverse relationship for accessing a user's comments.
+- Chronological ordering by `created_at` and `id`.
+
+#### Database Integrity
+
+Migration `0012` introduces:
+
+- `comment_thread_idx` — Composite index on
+  `post`, `parent`, and `created_at`.
+- `prevent_self_comment_reply` — Database constraint
+  preventing direct self-referencing comments.
+- Nullable parent relationships to preserve existing comments.
+
+#### Historical Data Preservation
+
+A custom `RunPython` migration initializes historical
+`updated_at` values using the original `created_at` timestamp.
+
+Verified that the original Wandrly comment retains:
+
+- Comment ID: 1
+- Post ID: 4
+- Original creation timestamp
+- Matching historical update timestamp
+- No parent comment
+
+No existing comment content or ownership was modified.
+
+#### Verification
+
+- Migration `0012` applied successfully.
+- Original historical comment preserved.
+- Top-level comment creation verified.
+- Replies to comments verified.
+- Replies to replies verified.
+- Reverse reply relationships verified.
+- Automatic update timestamps verified.
+- Direct self-referencing replies rejected.
+- Temporary test records rolled back.
+- Django system checks passed.
+- No pending migrations or model changes detected.
+
+#### Planned API and Frontend Behavior
+
+The upcoming API and React implementation will provide:
+
+- Threaded comment conversations.
+- Replies to comments and replies.
+- Visually limited reply indentation.
+- Expandable and collapsible reply threads.
+- Comment editing and deletion.
+- Comment and reply likes.
+- @username mentions and notifications.
+- Relative timestamps with exact dates available.
+- Pagination and comment sorting.
+- Cross-post reply validation.
+- Circular reply-chain prevention.
+- Privacy and blocked-user interaction enforcement.
+
+These behaviors are planned and are not yet implemented
+in the API or frontend.
