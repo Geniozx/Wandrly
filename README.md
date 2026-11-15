@@ -1182,3 +1182,112 @@ Phase 4 and subsequent frontend development will implement:
 
 The database foundation is complete. Comment submission
 restrictions and author-facing controls are not yet implemented.
+
+
+### Phase 3B — Destination Tagging Foundation ✅
+
+Established the database foundation for canonical travel
+destinations, geographic discovery, and destination pages.
+
+#### Destination Model
+
+Introduced `Destination` with:
+
+- `name` — Human-readable destination name.
+- `slug` — Unique, stable URL identifier.
+- `country` — Country or territory name.
+- `state` — Optional state or region.
+- `city` — Optional city.
+- `continent` — Optional continent.
+- `created_at` — Creation timestamp.
+- `updated_at` — Modification timestamp.
+
+Destinations represent shared geographic identities rather
+than individual map coordinates.
+
+#### Location-to-Destination Relationship
+
+Extended the existing `Location` model with:
+
+- `destination` — Nullable ForeignKey to Destination.
+- `on_delete=SET_NULL`.
+- `related_name="locations"`.
+
+Multiple Location records can reference one Destination.
+
+The existing Post.location relationship remains unchanged:
+
+Post → Location → Destination
+
+This preserves compatibility with historical posts and
+their existing Leaflet map coordinates.
+
+#### Migration
+
+Migration `0019_destination_location_destination.py`:
+
+- Depends on `0018_post_comments_enabled`.
+- Creates the Destination database table.
+- Adds a nullable destination foreign key to Location.
+- Creates the necessary database indexes.
+- Does not modify historical location coordinates.
+- Does not modify historical post associations.
+- Does not automatically create destination records.
+
+#### Historical Data Preservation
+
+Verified all six historical Location records remain intact.
+
+Verified historical Post.location associations:
+
+- Post 1 → Location 1
+- Post 4 → Location 4
+- Post 6 → Location 6
+
+All existing Location.destination values remain NULL
+until a controlled destination backfill is performed.
+
+#### Integrity Testing
+
+- Confirmed the active database was roamly_dev.
+- Successfully applied migration 0019.
+- Verified all six historical locations.
+- Verified all three historical post associations.
+- Confirmed the Destination table was initially empty.
+- Created a temporary Rio Grande destination.
+- Associated Locations 5 and 6 with that destination.
+- Verified both locations shared the destination.
+- Verified the existing Post.location relationship.
+- Rolled back all temporary destination changes.
+- Confirmed historical data remained unchanged.
+- Django system checks passed.
+- No pending migrations or model changes detected.
+
+#### Planned Destination Backfill
+
+A separate, controlled data migration will:
+
+- Create canonical destination records.
+- Associate existing locations with destinations.
+- Preserve historical location IDs and coordinates.
+- Preserve historical post relationships.
+- Handle duplicate city records safely.
+- Review inconsistent historical geographic metadata.
+
+The historical Ica/Lima classification and potentially
+inconsistent Jacksonville coordinates require explicit
+review rather than silent modification.
+
+#### Planned API and Frontend Features
+
+Future phases will implement:
+
+- Destination-specific pages and URLs.
+- Destination-based post discovery.
+- Geographic search and filtering.
+- Destination-aware map exploration.
+- Privacy-aware destination feeds.
+- Destination tagging during post creation and editing.
+
+The database foundation is complete. Historical destination
+backfilling and destination-facing APIs are not yet implemented.

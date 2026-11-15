@@ -154,7 +154,55 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
             instance.profile.save()
 
 
+class Destination(models.Model):
+    name = models.CharField(max_length=150)
+
+    slug = models.SlugField(
+        max_length=220,
+        unique=True,
+    )
+
+    country = models.CharField(max_length=100)
+
+    state = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    city = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    continent = models.CharField(
+        max_length=50,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = ["name", "id"]
+
+    def __str__(self):
+        return self.name
+
 class Location(models.Model):
+
+    destination = models.ForeignKey(
+        "Destination",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="locations",
+    )
+
     continent = models.CharField(max_length=50)
     continent_code = models.CharField(max_length=5)
     country = models.CharField(max_length=100)
