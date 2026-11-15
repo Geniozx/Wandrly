@@ -229,6 +229,9 @@ class Post(models.Model):
         choices=Visibility.choices,
         default=Visibility.PUBLIC,
     )
+    comments_enabled = models.BooleanField(
+        default=True,
+    )
     publication_status = models.CharField(
         max_length=10,
         choices=PublicationStatus.choices,

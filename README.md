@@ -1092,3 +1092,93 @@ evidence retention, deletion behavior, and audit history.
 The reporting database foundation is complete. Report APIs,
 moderator permissions, and moderation interfaces are not
 yet implemented.
+
+
+### Phase 3B — Post Comment Controls Foundation ✅
+
+Established the database foundation for author-controlled
+comment settings on Roamly 2.0 posts and travel journals.
+
+#### Post Comment Settings
+
+Extended the existing `Post` model with:
+
+- `comments_enabled` — BooleanField, default `True`.
+
+The setting allows post authors to enable or disable new
+comments and replies without deleting existing discussions.
+
+All historical posts default to having comments enabled,
+preserving existing application behavior.
+
+#### Intended Comment Behavior
+
+When comments are enabled:
+
+- Authorized users can submit comments.
+- Authorized users can reply to existing comments.
+- Existing discussions remain accessible according to
+  post visibility and account privacy rules.
+
+When comments are disabled:
+
+- New comments must be rejected.
+- New replies must be rejected.
+- Existing comments and replies remain preserved.
+- Existing comment likes remain preserved.
+- Authors can re-enable comments later.
+
+The database stores the setting. API-level enforcement
+will be implemented in Phase 4.
+
+#### Migration
+
+Migration `0018_post_comments_enabled.py`:
+
+- Depends on `0017_contentreport`.
+- Adds `comments_enabled` to the existing Post model.
+- Uses `BooleanField(default=True)`.
+- Preserves historical posts and their comment settings.
+- Does not modify Comment, CommentLike, or PostMedia.
+
+#### Historical Data Preservation
+
+Verified that historical posts `1`, `4`, and `6` retain
+their original IDs and have comments enabled.
+
+Confirmed the historical comment associated with post `4`
+remains intact.
+
+Existing comment records, reply relationships, and comment
+likes were compared before and after temporarily changing
+a post's comment setting.
+
+No historical discussion records were modified.
+
+#### Verification
+
+- Confirmed the development database was `roamly_dev`.
+- Successfully applied migration `0018`.
+- Verified historical posts have comments enabled.
+- Confirmed the historical comment on post `4`.
+- Tested disabling comments.
+- Verified existing comments and likes were preserved.
+- Tested re-enabling comments.
+- Rolled back all temporary changes.
+- Django system checks passed.
+- No pending migrations or model changes detected.
+
+#### Planned API and Frontend Behavior
+
+Phase 4 and subsequent frontend development will implement:
+
+- Author-only permission to change comment settings.
+- Rejection of new comments when comments are disabled.
+- Rejection of new replies when comments are disabled.
+- Preservation of existing discussion threads.
+- Privacy-aware access to existing comments.
+- Appropriate comment and reply controls in the UI.
+- Clear messaging when comments are disabled.
+
+The database foundation is complete. Comment submission
+restrictions and author-facing controls are not yet implemented.
