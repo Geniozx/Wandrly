@@ -733,3 +733,75 @@ The upcoming Django REST API and React frontend will support:
 
 These features are planned and are not yet implemented
 in the API or frontend.
+
+
+### Phase 3B — Expanded Notifications Foundation ✅
+
+Extended Roamly 2.0's notification database foundation to
+support threaded comment interactions and user mentions.
+
+#### Notification Types
+
+The Notification model now supports eight event types:
+
+Existing notification types:
+- `new_follower` — New follower.
+- `follow_request` — Follow request received.
+- `follow_accepted` — Follow request accepted.
+- `post_like` — Post liked.
+- `post_comment` — New post comment.
+
+New notification types:
+- `comment_reply` — Reply to a comment or nested reply.
+- `comment_like` — Like on a comment or nested reply.
+- `user_mention` — User mentioned in a comment or reply.
+
+#### Comment Relationship
+
+Added a nullable `comment` foreign key to the Notification
+model with the reverse relationship `comment.notifications`.
+
+This enables notifications to reference the relevant comment
+or reply while preserving compatibility with existing
+notification types that do not require comment references.
+
+#### Migration
+
+Migration `0014_notification_comment_and_more.py`:
+
+- Adds the nullable `comment_id` column.
+- Creates the foreign-key constraint to Comment.
+- Adds an index on `comment_id`.
+- Extends the notification type choices from five to eight.
+- Preserves existing notification relationships and constraints.
+- Does not modify historical notification records.
+
+#### Verification
+
+- Confirmed the target database was `roamly_dev`.
+- Successfully applied migration `0014`.
+- Verified all eight notification types.
+- Verified creation of notifications with comment and post references.
+- Confirmed notifications default to unread.
+- Verified reverse comment notification relationships.
+- Confirmed self-notifications are rejected.
+- Rolled back all temporary test records.
+- Django system checks passed.
+- No pending migrations or model changes detected.
+
+#### Planned API and Frontend Behavior
+
+The upcoming API and React frontend will implement:
+
+- Automatic notification creation for supported events.
+- Notifications for replies, comment likes, and mentions.
+- Notification recipient validation.
+- Privacy and blocked-user enforcement.
+- Notification preferences.
+- Mark-as-read and unread notification management.
+- Navigation to referenced posts, comments, and replies.
+- Relative timestamps with exact dates available.
+- Pagination and efficient notification queries.
+
+The database foundation is complete. Automatic notification
+generation and user-facing behavior are not yet implemented.

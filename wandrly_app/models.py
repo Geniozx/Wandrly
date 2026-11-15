@@ -322,6 +322,9 @@ class Notification(models.Model):
         FOLLOW_ACCEPTED = "follow_accepted", "Follow Request Accepted"
         POST_LIKE = "post_like", "Post Like"
         POST_COMMENT = "post_comment", "Post Comment"
+        COMMENT_REPLY = "comment_reply", "Comment Reply"
+        COMMENT_LIKE = "comment_like", "Comment Like"
+        USER_MENTION = "user_mention", "User Mention"
 
     recipient = models.ForeignKey(
         User,
@@ -339,6 +342,13 @@ class Notification(models.Model):
     )
     post = models.ForeignKey(
         Post,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+        null=True,
+        blank=True,
+    )
+    comment = models.ForeignKey(
+        "Comment",
         on_delete=models.CASCADE,
         related_name="notifications",
         null=True,
