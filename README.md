@@ -468,3 +468,71 @@ The Django REST API will support:
 Saving a post will not override its visibility or the author's profile privacy settings.
 
 Cascade deletion behavior is configured in the model and will receive dedicated testing during API development.
+
+
+### Phase 3 — Notifications Foundation ✅
+
+Established the database foundation for Roamly's in-app notification system.
+
+#### Notification Model
+
+Supports five notification types:
+
+- `new_follower` — A user gains a new follower.
+- `follow_request` — A private profile receives a follow request.
+- `follow_accepted` — A follow request is accepted.
+- `post_like` — Someone likes a post.
+- `post_comment` — Someone comments on a post.
+
+Each notification includes:
+
+- `recipient` — User receiving the notification.
+- `actor` — User who triggered the event.
+- `notification_type` — Type of notification.
+- `post` — Optional related post.
+- `follow_request` — Optional related follow request.
+- `is_read` — Read/unread status, defaulting to false.
+- `created_at` — Creation timestamp.
+
+#### Database Constraints and Performance
+
+- Prevents users from generating notifications to themselves.
+- Includes the `notification_inbox_idx` composite index for recipient, read status, and creation time.
+- Supports ordering by newest notifications first.
+- Uses Django foreign-key relationships for associated users, posts, and follow requests.
+
+#### Database Migration
+
+Migration `0010_notification.py`:
+
+- Creates the Notification table.
+- Adds foreign keys and supporting indexes.
+- Adds the self-notification prevention constraint.
+- Preserves existing users, profiles, posts, and media.
+
+#### Verification
+
+- Confirmed the target database was `roamly_dev`.
+- Applied migration `0010` successfully.
+- Verified notification creation with unread status.
+- Verified marking notifications as read and unread.
+- Verified self-notification attempts are rejected.
+- Verified unread notification inbox queries.
+- Confirmed all temporary test records were rolled back.
+- Django system checks passed.
+- All migrations through `0010` applied.
+- No additional model changes detected.
+
+#### Future API Implementation
+
+The Django REST API will provide:
+
+- Automatic notification creation for supported social events.
+- Authenticated notification inbox endpoints.
+- Mark-as-read and mark-as-unread operations.
+- Unread notification counts.
+- Pagination and ordering.
+- Authorization and privacy-aware notification details.
+- Event-specific validation and duplicate-event handling.
+
+Notification delivery and automatic event generation are not yet implemented.

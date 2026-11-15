@@ -284,6 +284,71 @@ class SavedPost(models.Model):
         return f"{self.user.username} saved post {self.post_id}"
 
 
+class Notification(models.Model):
+    class Type(models.TextChoices):
+        NEW_FOLLOWER = "new_follower", "New Follower"
+        FOLLOW_REQUEST = "follow_request", "Follow Request"
+        FOLLOW_ACCEPTED = "follow_accepted", "Follow Request Accepted"
+        POST_LIKE = "post_like", "Post Like"
+        POST_COMMENT = "post_comment", "Post Comment"
+
+    recipient = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+    )
+    actor = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="triggered_notifications",
+    )
+    notification_type = models.CharField(
+        max_length=30,
+        choices=Type.choices,
+    )
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+        null=True,
+        blank=True,
+    )
+    follow_request = models.ForeignKey(
+        FollowRequest,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+        null=True,
+        blank=True,
+    )
+    is_read = models.BooleanField(
+        default=False,
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(
+                fields=["recipient", "is_read", "-created_at"],
+                name="notification_inbox_idx",
+            ),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=~models.Q(recipient=models.F("actor")),
+                name="prevent_self_notification",
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.actor.username} -> "
+            f"{self.recipient.username}: {self.notification_type}"
+        )
+
+
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
