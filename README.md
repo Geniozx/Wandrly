@@ -805,3 +805,84 @@ The upcoming API and React frontend will implement:
 
 The database foundation is complete. Automatic notification
 generation and user-facing behavior are not yet implemented.
+
+
+### Phase 3B — Notification Preferences Foundation ✅
+
+Established the database foundation for user-controlled
+notification preferences in Roamly 2.0.
+
+#### NotificationPreference Model
+
+Introduced the `NotificationPreference` model with a
+one-to-one relationship to Django's existing User model.
+
+Each user can configure eight notification categories:
+
+- `new_followers` — New follower notifications.
+- `follow_requests` — Incoming follow requests.
+- `follow_accepted` — Accepted follow requests.
+- `post_likes` — Likes on posts.
+- `post_comments` — Comments on posts.
+- `comment_replies` — Replies to comments.
+- `comment_likes` — Likes on comments and replies.
+- `user_mentions` — Mentions in comments and replies.
+
+All eight settings default to `True`.
+
+The model also includes:
+
+- `created_at` — Preference record creation timestamp.
+- `updated_at` — Last modification timestamp.
+- `notification_preferences` — Reverse one-to-one user relationship.
+
+#### Database Integrity
+
+The one-to-one relationship enforces a unique preference
+record per user.
+
+Each user can configure notification categories independently
+without affecting other users.
+
+Existing user records remain unchanged. Preference records
+can be created when first needed by the application.
+
+#### Migration
+
+Migration `0015_notificationpreference.py`:
+
+- Creates the `wandrly_app_notificationpreference` table.
+- Adds eight boolean notification preference columns.
+- Adds creation and modification timestamps.
+- Creates a unique `user_id` relationship.
+- References the existing `auth_user` table.
+- Preserves all existing users and notifications.
+
+#### Verification
+
+- Confirmed the target database was `roamly_dev`.
+- Successfully applied migration `0015`.
+- Verified independent preference records for two users.
+- Confirmed all eight preferences default to enabled.
+- Verified individual preferences can be disabled.
+- Confirmed changes to one user do not affect another.
+- Verified reverse one-to-one relationships.
+- Confirmed duplicate preference records are rejected.
+- Verified original user records remain intact.
+- Rolled back all temporary test changes.
+- Django system checks passed.
+- No pending migrations or model changes detected.
+
+#### Planned API and Frontend Behavior
+
+The upcoming Django REST API and React frontend will support:
+
+- Retrieving the authenticated user's preferences.
+- Creating missing preference records when needed.
+- Updating individual notification categories.
+- Enforcing preferences during notification generation.
+- Managing preferences through account settings.
+- Applying privacy and blocked-user restrictions.
+
+These behaviors are planned and are not yet implemented
+in the API or frontend.

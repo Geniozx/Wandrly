@@ -390,6 +390,30 @@ class Notification(models.Model):
         )
 
 
+class NotificationPreference(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="notification_preferences",
+    )
+
+    new_followers = models.BooleanField(default=True)
+    follow_requests = models.BooleanField(default=True)
+    follow_accepted = models.BooleanField(default=True)
+
+    post_likes = models.BooleanField(default=True)
+    post_comments = models.BooleanField(default=True)
+
+    comment_replies = models.BooleanField(default=True)
+    comment_likes = models.BooleanField(default=True)
+    user_mentions = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s notification preferences"
+
 
 class Comment(models.Model):
     user = models.ForeignKey(
