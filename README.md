@@ -265,3 +265,94 @@ The original `wandrly` database remains outside the migration target.
 ### Next Milestone
 
 Introduce the PostMedia model to support multiple ordered images per post while preserving existing media references.
+
+
+
+### Phase 3 — Unified Post Media Foundation ✅
+
+**Status:** Completed
+
+Implemented the database foundation for multiple images,
+multiple videos, mixed-media posts, and optional custom
+post cover images.
+
+#### Unified PostMedia Model
+
+Added the `PostMedia` model with:
+
+- Foreign key to `Post` (`related_name="media_items"`)
+- Media type classification: image or video
+- File storage through Django's `FileField`
+- Zero-based media ordering using `position`
+- Optional video thumbnail image
+- Optional accessibility description (`alt_text`)
+- Automatic creation timestamp
+- Unique constraint on `(post, position)`
+- Default ordering by `position`, then `id`
+
+#### Custom Post Covers
+
+Added `Post.cover_image`:
+
+- Optional image field
+- Stored under `posts/covers/`
+- Independent of the post's media attachments
+- Intended for profile grids, feeds, and Explore cards
+
+Automatic cover fallback behavior will be implemented
+during the API and frontend development phases.
+
+#### Database Migrations
+
+- `0005_postmedia`
+  - Created the original multi-image PostMedia table.
+
+- `0006_backfill_post_media`
+  - Backfilled existing image references into PostMedia.
+  - Preserved original image paths.
+  - Avoided duplicate media records.
+
+- `0007_unified_post_media`
+  - Renamed `PostMedia.image` to `PostMedia.file`.
+  - Changed ImageField to FileField.
+  - Added media type classification.
+  - Added optional video thumbnail field.
+  - Added optional Post cover image field.
+  - Updated the reverse relationship to `media_items`.
+
+#### Historical Data Verification
+
+Validated against the isolated `roamly_dev` database:
+
+- Existing posts: 3
+- Unified media records: 3
+- All historical media classified as images
+- All media positions preserved at zero
+- All original and new file paths match
+- All referenced physical files exist
+- All legacy `Post.media` references preserved
+- All seven application migrations applied
+- No outstanding model changes
+
+**Result:** All unified media integrity checks passed.
+
+#### Backward Compatibility
+
+The original `Post.media` field remains available
+because existing Django forms and templates depend on it.
+
+#### Future Implementation
+
+The database now supports storing image and video
+attachment references.
+
+The following functionality is planned but not yet
+implemented:
+
+- Multiple file uploads per post
+- Mixed-media carousel interfaces
+- Video file validation and size limits
+- Video processing and thumbnail generation
+- Custom cover upload and automatic cover fallback
+- Secure media access respecting post privacy
+- Video playback and responsive media presentation

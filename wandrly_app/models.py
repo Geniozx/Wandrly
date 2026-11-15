@@ -82,6 +82,10 @@ class Post(models.Model):
     media = models.ImageField(
         upload_to="posts/",
     )
+    cover_image = models.ImageField(
+        upload_to="posts/covers/",
+        blank=True,
+    )
     caption = models.TextField(
         blank=True,
     )
@@ -122,6 +126,52 @@ class Post(models.Model):
             "post-detail",
             kwargs={"post_id": self.id},
         )
+
+
+class PostMedia(models.Model):
+    class MediaType(models.TextChoices):
+        IMAGE = "image", "Image"
+        VIDEO = "video", "Video"
+
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name="media_items",
+    )
+    media_type = models.CharField(
+        max_length=10,
+        choices=MediaType.choices,
+        default=MediaType.IMAGE,
+    )
+    file = models.FileField(
+        upload_to="posts/",
+    )
+    thumbnail = models.ImageField(
+        upload_to="posts/thumbnails/",
+        blank=True,
+    )
+    position = models.PositiveIntegerField(
+        default=0,
+    )
+    alt_text = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = ["position", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["post", "position"],
+                name="unique_post_media_position",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Post {self.post_id} - {self.media_type} {self.position + 1}"
 
 
 
