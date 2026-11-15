@@ -503,3 +503,103 @@ class CommentLike(models.Model):
             f"{self.user.username} liked "
             f"comment {self.comment_id}"
         )
+
+
+class ContentReport(models.Model):
+    class Reason(models.TextChoices):
+        SPAM = "spam", "Spam"
+        HARASSMENT = "harassment", "Harassment or Bullying"
+        HATE_ABUSE = "hate_abuse", "Hate or Abusive Content"
+        INAPPROPRIATE = "inappropriate", "Inappropriate Content"
+        IMPERSONATION = "impersonation", "Impersonation"
+        OTHER = "other", "Other"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        UNDER_REVIEW = "under_review", "Under Review"
+        RESOLVED = "resolved", "Resolved"
+        DISMISSED = "dismissed", "Dismissed"
+
+    reporter = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="submitted_reports",
+    )
+
+    reported_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="account_reports",
+        null=True,
+        blank=True,
+    )
+
+    reported_post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name="reports",
+        null=True,
+        blank=True,
+    )
+
+    reported_comment = models.ForeignKey(
+        Comment,
+        on_delete=models.CASCADE,
+        related_name="reports",
+        null=True,
+        blank=True,
+    )
+
+    reason = models.CharField(
+        max_length=20,
+        choices=Reason.choices,
+    )
+
+    details = models.TextField(
+        blank=True,
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    (
+                        models.Q(reported_user__isnull=False)
+                        & models.Q(reported_post__isnull=True)
+                        & models.Q(reported_comment__isnull=True)
+                    )
+                    | (
+                        models.Q(reported_user__isnull=True)
+                        & models.Q(reported_post__isnull=False)
+                        & models.Q(reported_comment__isnull=True)
+                    )
+                    | (
+                        models.Q(reported_user__isnull=True)
+                        & models.Q(reported_post__isnull=True)
+                        & models.Q(reported_comment__isnull=False)
+                    )
+                ),
+                name="report_exactly_one_target",
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"Report {self.pk}: "
+            f"{self.reporter.username} - {self.reason}"
+        )

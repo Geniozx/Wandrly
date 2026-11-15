@@ -984,3 +984,111 @@ The upcoming Django REST API and React frontend will support:
 The database foundation is complete. Draft access controls,
 publishing workflows, and frontend functionality are not
 yet implemented.
+
+
+### Phase 3B — Content Reporting Foundation ✅
+
+Established the database foundation for reporting inappropriate
+accounts, posts, comments, and threaded replies in Roamly 2.0.
+
+#### ContentReport Model
+
+Introduced `ContentReport` to support reporting three target types:
+
+- User accounts
+- Posts
+- Comments, including threaded replies
+
+Each report records:
+
+- Reporter
+- Exactly one reported target
+- Report reason
+- Optional additional details
+- Moderation status
+- Creation timestamp
+- Last modification timestamp
+
+Reports are ordered by newest creation timestamp, followed by ID.
+
+#### Report Reasons
+
+The following standardized reasons are supported:
+
+- `spam` — Spam
+- `harassment` — Harassment or Bullying
+- `hate_abuse` — Hate or Abusive Content
+- `inappropriate` — Inappropriate Content
+- `impersonation` — Impersonation
+- `other` — Other
+
+#### Moderation Statuses
+
+Reports support four moderation statuses:
+
+- `pending` — Awaiting review
+- `under_review` — Being reviewed
+- `resolved` — Reviewed and resolved
+- `dismissed` — Reviewed and dismissed
+
+New reports default to `pending`.
+
+#### Database Integrity
+
+Migration `0017_contentreport.py` introduces the
+`report_exactly_one_target` PostgreSQL CHECK constraint.
+
+This constraint requires exactly one of the following:
+
+- `reported_user`
+- `reported_post`
+- `reported_comment`
+
+The database rejects reports with no target or multiple targets.
+
+Foreign key relationships connect reports to existing users,
+posts, and comments.
+
+No historical users, posts, comments, or media were modified.
+
+#### Verification
+
+- Confirmed the target database was `roamly_dev`.
+- Successfully applied migration `0017`.
+- Verified reports against users, posts, and comments.
+- Confirmed new reports default to `pending`.
+- Verified reports without a target are rejected.
+- Verified reports with multiple targets are rejected.
+- Tested moderation status transitions.
+- Rolled back all temporary report records.
+- Django system checks passed.
+- No pending migrations or model changes detected.
+
+#### Planned API and Moderation Behavior
+
+The upcoming API and moderation workflows will implement:
+
+- Authenticated report submission.
+- Prevention of self-reporting.
+- Reporter privacy and restricted report visibility.
+- Moderator-only review and status changes.
+- Report submission rate limiting.
+- Duplicate and abusive report handling.
+- Reporting controls for posts, profiles, and comments.
+- Appropriate handling of private and blocked content.
+- Moderation history and audit requirements.
+
+#### Production Considerations
+
+The current model uses cascading deletion for reported
+users, posts, and comments.
+
+Deleting a reported target can therefore delete its
+associated reports.
+
+Before production, the moderation architecture must address
+evidence retention, deletion behavior, and audit history.
+
+The reporting database foundation is complete. Report APIs,
+moderator permissions, and moderation interfaces are not
+yet implemented.
