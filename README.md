@@ -536,3 +536,59 @@ The Django REST API will provide:
 - Event-specific validation and duplicate-event handling.
 
 Notification delivery and automatic event generation are not yet implemented.
+
+
+
+### Phase 3B — User Blocking Foundation ✅
+
+Established the database foundation for user blocking and unblocking in Roamly 2.0.
+
+#### UserBlock Model
+
+Introduced the `UserBlock` model with:
+
+- `blocker` — User initiating the block.
+- `blocked` — User receiving the block.
+- `created_at` — Timestamp recording when the block was created.
+
+#### Database Relationships and Constraints
+
+- `blocked_users` — Access accounts blocked by a user.
+- `blocked_by_users` — Access accounts that have blocked a user.
+- `unique_user_block` — Prevents duplicate blocking relationships.
+- `prevent_self_block` — Prevents users from blocking themselves.
+- Foreign-key indexes support efficient relationship queries.
+
+#### Migration
+
+Migration `0011_userblock.py`:
+
+- Creates the `UserBlock` database table.
+- Adds foreign keys and integrity constraints.
+- Preserves all existing user, profile, post, and social data.
+- Applies to the isolated `roamly_dev` database.
+
+#### Verification
+
+- Confirmed the target database was `roamly_dev`.
+- Successfully applied migration `0011`.
+- Verified valid blocking relationships.
+- Verified forward and reverse relationship queries.
+- Confirmed duplicate blocks are rejected.
+- Confirmed self-blocking is rejected.
+- Rolled back all temporary test records.
+- Django system checks passed.
+- No pending migrations or model changes detected.
+
+#### Future API Implementation
+
+The Django REST API will implement:
+
+- Block and unblock actions.
+- Removal of existing follow relationships when blocking.
+- Cancellation of pending follow requests.
+- Restrictions on following, commenting, mentioning, and other interactions.
+- Privacy-aware profile, post, and media access.
+- A blocked accounts management interface.
+
+Blocking behavior and authorization are not yet implemented in the API.
