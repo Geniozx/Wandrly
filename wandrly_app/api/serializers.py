@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 
 from rest_framework import serializers
 
+from wandrly_app.models import Profile
 
 User = get_user_model()
 
@@ -81,3 +82,48 @@ class LoginSerializer(serializers.Serializer):
 
         attrs["user"] = user
         return attrs
+
+
+
+class PublicProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        source="user.username",
+        read_only=True,
+    )
+
+    class Meta:
+        model = Profile
+        fields = (
+            "username",
+            "display_name",
+            "avatar",
+            "is_private",
+        )
+
+
+class ProfileDetailSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        source="user.username",
+        read_only=True,
+    )
+
+    class Meta:
+        model = Profile
+        fields = (
+            "username",
+            "display_name",
+            "bio",
+            "avatar",
+            "is_private",
+        )
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = (
+            "display_name",
+            "bio",
+            "avatar",
+            "is_private",
+        )

@@ -1,13 +1,13 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 from django.conf import settings
-from django.test import Client
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
+from wandrly_app.models import Follow, FollowRequest, UserBlock
 
 User = get_user_model()
 
@@ -427,3 +427,391 @@ class AuthenticationEndpointTests(TestCase):
         )
 
         self.assertEqual(logout_response.status_code, 403)
+
+
+
+class ProfileEndpointTests(TestCase):
+    def setUp(self):
+        self.client = Client(enforce_csrf_checks=True)
+
+        self.owner = User.objects.create_user(
+            username="traveler",
+            email="traveler@example.com",
+            password="SecureTravelPass123!",
+        )
+
+        self.viewer = User.objects.create_user(
+            username="explorer",
+            email="explorer@example.com",
+            password="SecureTravelPass123!",
+        )
+
+        self.owner.profile.display_name = "Travel Explorer"
+        self.owner.profile.bio = "Exploring the world."
+        self.owner.profile.save()
+
+    def profile_url(self):
+        return reverse(
+            "api:profile-detail",
+            kwargs={"username": self.owner.username},
+        )
+
+    def get_csrf_token(self):
+        response = self.client.get(reverse("api:csrf"))
+        return response.json()["csrfToken"]
+
+    def test_anonymous_user_can_view_public_profile(self):
+        response = self.client.get(self.profile_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["username"],
+            "traveler",
+        )
+        self.assertEqual(
+            response.json()["bio"],
+            "Exploring the world.",
+        )
+        self.assertNotIn("email", response.json())
+
+    def test_anonymous_user_sees_limited_private_profile(self):
+        self.owner.profile.is_private = True
+        self.owner.profile.save()
+
+        response = self.client.get(self.profile_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["username"],
+            "traveler",
+        )
+        self.assertNotIn("bio", response.json())
+        self.assertNotIn("email", response.json())
+
+    def test_unapproved_user_sees_limited_private_profile(self):
+        self.owner.profile.is_private = True
+        self.owner.profile.save()
+
+        self.client.force_login(self.viewer)
+
+        response = self.client.get(self.profile_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("bio", response.json())
+
+    def test_approved_follower_can_view_private_profile(self):
+        self.owner.profile.is_private = True
+        self.owner.profile.save()
+
+        Follow.objects.create(
+            follower=self.viewer,
+            following=self.owner,
+        )
+
+        self.client.force_login(self.viewer)
+
+        response = self.client.get(self.profile_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["bio"],
+            "Exploring the world.",
+        )
+
+    def test_pending_follow_request_does_not_grant_access(self):
+        self.owner.profile.is_private = True
+        self.owner.profile.save()
+
+        FollowRequest.objects.create(
+            requester=self.viewer,
+            recipient=self.owner,
+            status=FollowRequest.Status.PENDING,
+        )
+
+        self.client.force_login(self.viewer)
+
+        response = self.client.get(self.profile_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("bio", response.json())
+
+    def test_blocked_viewer_cannot_view_profile(self):
+        UserBlock.objects.create(
+            blocker=self.owner,
+            blocked=self.viewer,
+        )
+
+        self.client.force_login(self.viewer)
+
+        response = self.client.get(self.profile_url())
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_blocking_owner_cannot_view_profile(self):
+        UserBlock.objects.create(
+            blocker=self.viewer,
+            blocked=self.owner,
+        )
+
+        self.client.force_login(self.viewer)
+
+        response = self.client.get(self.profile_url())
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_owner_can_view_own_private_profile(self):
+        self.owner.profile.is_private = True
+        self.owner.profile.save()
+
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("api:profile-me"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["bio"],
+            "Exploring the world.",
+        )
+
+    def test_anonymous_user_cannot_access_my_profile(self):
+        response = self.client.get(reverse("api:profile-me"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_owner_can_update_profile(self):
+        self.client.force_login(self.owner)
+        token = self.get_csrf_token()
+
+        response = self.client.patch(
+            reverse("api:profile-me"),
+            data={
+                "display_name": "World Traveler",
+                "bio": "New adventures ahead.",
+            },
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.owner.profile.refresh_from_db()
+
+        self.assertEqual(
+            self.owner.profile.display_name,
+            "World Traveler",
+        )
+        self.assertEqual(
+            self.owner.profile.bio,
+            "New adventures ahead.",
+        )
+
+    def test_profile_update_requires_csrf(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.patch(
+            reverse("api:profile-me"),
+            data={"bio": "Unauthorized update"},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+        self.owner.profile.refresh_from_db()
+
+        self.assertEqual(
+            self.owner.profile.bio,
+            "Exploring the world.",
+        )
+
+    def test_user_cannot_update_another_profile(self):
+        self.client.force_login(self.viewer)
+        token = self.get_csrf_token()
+
+        response = self.client.patch(
+            reverse("api:profile-me"),
+            data={"bio": "Attempted overwrite"},
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.owner.profile.refresh_from_db()
+        self.viewer.profile.refresh_from_db()
+
+        self.assertEqual(
+            self.owner.profile.bio,
+            "Exploring the world.",
+        )
+        self.assertEqual(
+            self.viewer.profile.bio,
+            "Attempted overwrite",
+        )
+
+    def test_public_profile_does_not_expose_email(self):
+        response = self.client.get(self.profile_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("email", response.json())
+
+    def test_nonexistent_profile_returns_404(self):
+        response = self.client.get(
+            reverse(
+                "api:profile-detail",
+                kwargs={"username": "doesnotexist"},
+            )
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+
+
+    def test_anonymous_user_cannot_update_profile(self):
+        token = self.get_csrf_token()
+
+        response = self.client.patch(
+            reverse("api:profile-me"),
+            data={"bio": "Unauthorized update"},
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=token,
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+        self.owner.profile.refresh_from_db()
+        self.assertEqual(
+            self.owner.profile.bio,
+            "Exploring the world.",
+        )
+
+    def test_owner_can_change_profile_privacy(self):
+        self.client.force_login(self.owner)
+        token = self.get_csrf_token()
+
+        response = self.client.patch(
+            reverse("api:profile-me"),
+            data={"is_private": True},
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.owner.profile.refresh_from_db()
+        self.assertTrue(self.owner.profile.is_private)
+
+        self.client.logout()
+
+        public_response = self.client.get(self.profile_url())
+
+        self.assertEqual(public_response.status_code, 200)
+        self.assertNotIn("bio", public_response.json())
+
+    def test_profile_update_rejects_excessive_display_name(self):
+        self.client.force_login(self.owner)
+        token = self.get_csrf_token()
+
+        response = self.client.patch(
+            reverse("api:profile-me"),
+            data={"display_name": "A" * 101},
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+        self.owner.profile.refresh_from_db()
+        self.assertEqual(
+            self.owner.profile.display_name,
+            "Travel Explorer",
+        )
+
+    def test_profile_update_rejects_excessive_bio(self):
+        self.client.force_login(self.owner)
+        token = self.get_csrf_token()
+
+        response = self.client.patch(
+            reverse("api:profile-me"),
+            data={"bio": "A" * 501},
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+        self.owner.profile.refresh_from_db()
+        self.assertEqual(
+            self.owner.profile.bio,
+            "Exploring the world.",
+        )
+
+    def test_profile_update_cannot_change_username(self):
+        self.client.force_login(self.owner)
+        token = self.get_csrf_token()
+
+        response = self.client.patch(
+            reverse("api:profile-me"),
+            data={
+                "username": "hackedusername",
+                "bio": "Updated biography.",
+            },
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.owner.refresh_from_db()
+        self.assertEqual(self.owner.username, "traveler")
+
+    def test_profile_update_cannot_change_email(self):
+        self.client.force_login(self.owner)
+        token = self.get_csrf_token()
+
+        response = self.client.patch(
+            reverse("api:profile-me"),
+            data={
+                "email": "changed@example.com",
+                "bio": "Updated biography.",
+            },
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.owner.refresh_from_db()
+        self.assertEqual(
+            self.owner.email,
+            "traveler@example.com",
+        )
+
+    def test_blocked_user_cannot_view_private_profile(self):
+        self.owner.profile.is_private = True
+        self.owner.profile.save()
+
+        Follow.objects.create(
+            follower=self.viewer,
+            following=self.owner,
+        )
+
+        UserBlock.objects.create(
+            blocker=self.owner,
+            blocked=self.viewer,
+        )
+
+        self.client.force_login(self.viewer)
+
+        response = self.client.get(self.profile_url())
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_private_profile_does_not_expose_bio_to_anonymous_user(self):
+        self.owner.profile.is_private = True
+        self.owner.profile.save()
+
+        response = self.client.get(self.profile_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("bio", response.json())
+        self.assertNotIn("email", response.json())

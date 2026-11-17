@@ -1401,6 +1401,7 @@ Existing historical data remains subject to validation before destination associ
 
 The original Wandrly database is preserved separately from the Roamly 2.0 development database.
 
+
 ### Phase 4.6 — Session Authentication API
 
 Roamly 2.0 uses Django's existing `auth.User` model and session-based authentication through Django REST Framework. JWT authentication is not required.
@@ -1464,3 +1465,99 @@ Tests run against a temporary PostgreSQL database, separate from the Roamly deve
 Before public deployment, complete login and registration rate limiting, production HTTPS and cookie configuration, trusted frontend origins, and additional security testing.
 
 Email uniqueness is currently enforced through application validation rather than a database-level unique constraint.
+
+
+### Phase 4.7 — User Profiles API
+
+Status: Complete
+
+The Profiles API provides authenticated profile management and
+privacy-aware public profile retrieval.
+
+#### Endpoints
+
+| Method | Endpoint | Authentication | Description |
+|---|---|---|---|
+| GET | `/api/v1/profiles/me/` | Required | Retrieve the authenticated user's profile |
+| PATCH | `/api/v1/profiles/me/` | Required + CSRF | Update the authenticated user's profile |
+| GET | `/api/v1/profiles/<username>/` | Optional | Retrieve a public or privacy-filtered user profile |
+
+#### Profile Fields
+
+The Profile model includes:
+
+- `display_name` — Maximum 100 characters
+- `bio` — Maximum 500 characters
+- `avatar` — Optional profile image
+- `is_private` — Profile privacy setting
+
+The username is retrieved from Django's existing User model.
+
+Profile updates cannot modify account usernames, email addresses,
+or ownership relationships.
+
+#### Profile Privacy
+
+Public profiles expose username, display name, avatar, privacy
+status, and bio.
+
+Private profiles expose limited identity information to
+unauthorized viewers:
+
+- Username
+- Display name
+- Avatar
+- Privacy status
+
+The bio is available to the profile owner and established followers.
+
+Pending follow requests do not grant private profile access.
+
+A block in either direction prevents profile retrieval through
+the public profile endpoint and returns HTTP 404.
+
+Public profile responses never include email addresses.
+
+#### Security
+
+- Profile updates require an authenticated Django session.
+- PATCH requests require a valid CSRF token.
+- Profile ownership is derived from `request.user`.
+- Clients cannot select another profile to update.
+- Field length validation is enforced through DRF serializers.
+- Privacy checks are centralized in `api/privacy.py`.
+
+#### Media Storage
+
+Profile avatars currently use Django FileSystemStorage and are
+intentionally treated as public profile information.
+
+During development, Django serves media files directly when
+DEBUG=True.
+
+Blocking a user prevents profile retrieval through the API but
+does not revoke access to a previously known direct avatar URL.
+
+Private post and travel media require protected delivery before
+public deployment. API-level privacy checks alone do not secure
+direct media URLs.
+
+#### Automated Tests
+
+Phase 4.7 adds 22 profile tests covering:
+
+- Public and private profile retrieval
+- Anonymous access
+- Approved follower permissions
+- Pending follow requests
+- Bidirectional blocking
+- Profile ownership
+- CSRF enforcement
+- Profile privacy updates
+- Display name and bio validation
+- Username and email modification restrictions
+- Missing profiles
+
+Total API test suite: 46 tests passing.
+
+No database schema changes or new migrations were required.

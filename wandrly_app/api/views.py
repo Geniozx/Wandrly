@@ -1,7 +1,10 @@
 from django.middleware.csrf import get_token
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, get_user_model
 from django.views.decorators.csrf import csrf_protect
 from django.utils.decorators import method_decorator
+from django.shortcuts import get_object_or_404
+
+from wandrly_app.models import Profile
 
 from rest_framework.decorators import (
     api_view,
@@ -16,6 +19,14 @@ from .serializers import (
     LoginSerializer,
     RegistrationSerializer,
     UserSerializer,
+    ProfileDetailSerializer,
+    ProfileUpdateSerializer,
+    PublicProfileSerializer,
+)
+
+from .privacy import (
+    can_view_profile_content,
+    users_are_blocked,
 )
 
 
@@ -102,3 +113,81 @@ class CurrentUserView(APIView):
         return Response({
             "user": serializer.data
         })
+
+
+
+User = get_user_model()
+
+
+class MyProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile = get_object_or_404(
+            Profile.objects.select_related("user"),
+            user=request.user,
+        )
+
+        serializer = ProfileDetailSerializer(
+            profile,
+            context={"request": request},
+        )
+
+        return Response(serializer.data)
+
+    def patch(self, request):
+        profile = get_object_or_404(
+            Profile,
+            user=request.user,
+        )
+
+        serializer = ProfileUpdateSerializer(
+            profile,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            ProfileDetailSerializer(
+                profile,
+                context={"request": request},
+            ).data
+        )
+
+
+class PublicProfileView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, username):
+        target_user = get_object_or_404(
+            User,
+            username=username,
+        )
+
+        if users_are_blocked(request.user, target_user):
+            return Response(
+                {"detail": "Profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        profile = get_object_or_404(
+            Profile.objects.select_related("user"),
+            user=target_user,
+        )
+
+        if can_view_profile_content(request.user, profile):
+            serializer = ProfileDetailSerializer(
+                profile,
+                context={"request": request},
+            )
+        else:
+            serializer = PublicProfileSerializer(
+                profile,
+                context={"request": request},
+            )
+
+        return Response(serializer.data)
