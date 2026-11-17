@@ -1400,3 +1400,67 @@ Migration `0020_backfill_historical_destinations` supports fresh installations w
 Existing historical data remains subject to validation before destination associations are created.
 
 The original Wandrly database is preserved separately from the Roamly 2.0 development database.
+
+### Phase 4.6 — Session Authentication API
+
+Roamly 2.0 uses Django's existing `auth.User` model and session-based authentication through Django REST Framework. JWT authentication is not required.
+
+#### Authentication endpoints
+
+| Method | Endpoint | Access | Purpose |
+|---|---|---|---|
+| GET | `/api/v1/auth/csrf/` | Public | Initialize CSRF protection |
+| POST | `/api/v1/auth/register/` | Public, CSRF required | Register a user and create a session |
+| POST | `/api/v1/auth/login/` | Public, CSRF required | Authenticate and create a session |
+| POST | `/api/v1/auth/logout/` | Authenticated, CSRF required | Terminate the current session |
+| GET | `/api/v1/auth/me/` | Authenticated | Retrieve the current user |
+
+#### Registration
+
+Registration accepts `username`, `email`, `password`, and `password_confirm`.
+
+The API validates password confirmation, Django password-strength requirements, and duplicate usernames and email addresses.
+
+Passwords are hashed using Django's authentication system. Passwords are never returned in user responses.
+
+Registration creates an authenticated session upon success.
+
+#### Login and logout
+
+Login accepts a username and password and establishes a Django session.
+
+Logout requires authentication and CSRF protection, then terminates the active session.
+
+The `/auth/me/` endpoint returns the authenticated user's ID, username, first name, last name, and email address.
+
+#### CSRF and cookie security
+
+Session cookies and CSRF cookies are configured as HttpOnly, with SameSite set to `Lax`.
+
+Secure cookies are enabled when Django runs with `DEBUG=False`. Production deployment must use HTTPS.
+
+The CSRF initialization endpoint returns a token in its JSON response. Frontend clients must include that token in the `X-CSRFToken` header for protected requests.
+
+Django rotates the CSRF token during login. The frontend must retrieve a fresh token after login or registration before making further authenticated state-changing requests.
+
+#### Automated testing
+
+The API test suite contains 24 passing tests covering:
+
+- Health endpoint responses and public access
+- Default authenticated permissions
+- CSRF initialization and cookie attributes
+- Registration validation and account creation
+- Login success and failure
+- Session persistence
+- Authenticated current-user retrieval
+- Logout and session termination
+- CSRF enforcement and token rotation
+
+Tests run against a temporary PostgreSQL database, separate from the Roamly development database and the original Wandrly database.
+
+#### Production security follow-up
+
+Before public deployment, complete login and registration rate limiting, production HTTPS and cookie configuration, trusted frontend origins, and additional security testing.
+
+Email uniqueness is currently enforced through application validation rather than a database-level unique constraint.

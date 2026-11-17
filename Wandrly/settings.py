@@ -135,6 +135,19 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Roamly session and CSRF security
+
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# Secure cookies in HTTPS environments.
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
